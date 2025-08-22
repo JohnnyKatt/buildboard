@@ -7,3 +7,4 @@ python-multipart==0.0.9
 pdfminer.six==20231228
 pydantic==2.8.2
 pydantic-settings==2.3.4
+mongomock==4.2.0

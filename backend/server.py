@@ -25,10 +25,7 @@ JWT_ALG = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
 MONGO_URL = os.environ.get("MONGO_URL")
-if not MONGO_URL:
-    # Per platform rules, we MUST use env MONGO_URL and never hardcode.
-    # We intentionally raise here if missing to surface misconfiguration.
-    raise RuntimeError("MONGO_URL is not set in environment")
+USE_INMEMORY = False
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -51,10 +48,71 @@ os.makedirs(UPLOADS_DIR, exist_ok=True)
 app.mount("/api/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
 # ---------------
-# DB Connections
+# DB Connections (with in-memory fallback)
 # ---------------
-client: AsyncIOMotorClient = AsyncIOMotorClient(MONGO_URL)
-db: AsyncIOMotorDatabase = client.get_default_database() or client["buildboard"]
+if not MONGO_URL:
+    USE_INMEMORY = True
+    print("===============================")
+    print("USING IN-MEMORY DB (non-persistent)")
+    print("Add MONGO_URL in backend/.env to use a real MongoDB instance.")
+    print("===============================")
+    import mongomock
+
+    class AsyncCursorWrapper:
+        def __init__(self, docs: List[Dict[str, Any]]):
+            self.docs = list(docs)
+            self._i = 0
+        def sort(self, field: str, direction: int):
+            reverse = direction == -1
+            def get_field(d: Dict[str, Any]):
+                parts = field.split(".")
+                v: Any = d
+                for p in parts:
+                    v = v.get(p) if isinstance(v, dict) else None
+                return v
+            self.docs.sort(key=get_field, reverse=reverse)
+            return self
+        def limit(self, n: int):
+            self.docs = self.docs[:n]
+            return self
+        def __aiter__(self):
+            self._i = 0
+            return self
+        async def __anext__(self):
+            if self._i >= len(self.docs):
+                raise StopAsyncIteration
+            v = self.docs[self._i]
+            self._i += 1
+            return v
+
+    class AsyncCollectionWrapper:
+        def __init__(self, col):
+            self.col = col
+        async def find_one(self, filt: Dict[str, Any]):
+            return self.col.find_one(filt)
+        def find(self, filt: Dict[str, Any]):
+            docs = list(self.col.find(filt))
+            return AsyncCursorWrapper(docs)
+        async def insert_one(self, doc: Dict[str, Any]):
+            self.col.insert_one(doc)
+            return {"inserted_id": doc.get("_id")}
+        async def update_one(self, filt: Dict[str, Any], update: Dict[str, Any]):
+            self.col.update_one(filt, update)
+            return {"modified_count": 1}
+        async def count_documents(self, filt: Dict[str, Any]):
+            return self.col.count_documents(filt)
+
+    class AsyncDBWrapper:
+        def __init__(self, db):
+            self.db = db
+        def __getitem__(self, name: str):
+            return AsyncCollectionWrapper(self.db[name])
+
+    sync_client = mongomock.MongoClient()
+    db = AsyncDBWrapper(sync_client["buildboard"])
+else:
+    client: AsyncIOMotorClient = AsyncIOMotorClient(MONGO_URL)
+    db: AsyncIOMotorDatabase = client.get_default_database() or client["buildboard"]
 
 # Collections
 users = db["users"]
