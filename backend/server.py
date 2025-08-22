@@ -566,7 +566,7 @@ async def upload_invoice(build_id: str, file: UploadFile = File(...), current=De
     path = os.path.join(UPLOADS_DIR, fname)
     with open(path, "wb") as f:
         f.write(await file.read())
-    file_url = f"/uploads/{fname}"
+    file_url = f"/api/uploads/{fname}"
     # Parse using pdfminer to extract text, then naive line split
     try:
         text = extract_text(path)
