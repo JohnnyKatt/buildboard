@@ -1,1 +1,19 @@
+change_request:
+  id: CR-001
+  title: Simplify Part Linking
+  scope: Part Linking
+  rationale: Reduce friction to add parts and multiple vendor links.
+  acceptance:
+    - Required fields limited to brand + part_name
+    - Add “+ Add vendor link” repeater (label + url)
+    - Keep pre-publish confirm step
+  constraints:
+    - Do not change Build/Profile navigation
+    - Preserve affiliate-ready vendor chips
+  diff: |
+    # Part Linking form (REPLACE SECTION in v1)
+    - Required: brand, part_name
+    - Optional: sku, fitment_notes
+    - Vendor links: add 1..n (label, url); show simple preview (stub)
+    - Pre-publish confirm: show part list + vendor links; allow quick edits
 
