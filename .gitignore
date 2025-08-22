@@ -1,0 +1,17 @@
+# Node/JS
+node_modules/
+.next/
+dist/
+build/
+.vite/
+.cache/
+coverage/
+
+# Python
+__pycache__/
+.venv/
+.mypy_cache/
+
+# Env / secrets
+.env
+.env.*
