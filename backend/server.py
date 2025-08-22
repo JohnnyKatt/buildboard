@@ -298,7 +298,7 @@ class InvoiceUploadOut(BaseModel):
 # ---------------
 # Auth dependency
 # ---------------
-async def get_current_user(authorization: Optional[str] = None) -> Dict[str, Any]:
+async def get_current_user(authorization: Optional[str] = Header(None)) -> Dict[str, Any]:
     if not authorization:
         raise HTTPException(status_code=401, detail="Not authenticated")
     try:
