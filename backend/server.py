@@ -359,7 +359,7 @@ async def me(current=Depends(get_current_user)):
 # ---------------
 # Shops
 # ---------------
-@router.post("/shops", response_model=ShopOut)
+@router.post("/shops", response_model=ShopOut, status_code=201)
 async def create_shop(payload: ShopIn, current=Depends(get_current_user)):
     if current.get("role") != "shop":
         raise HTTPException(status_code=403, detail="Only shop users can create shops")
