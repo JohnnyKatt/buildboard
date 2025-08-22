@@ -192,9 +192,9 @@ class ShopIn(BaseModel):
     name: str
     locationCity: Optional[str] = None
     locationState: Optional[str] = None
-    locationCountry: Optional[str] = None
+    locationCountry: Optional[str] = None  # optional for MVP
     website: Optional[str] = None
-    socials: Optional[Dict[str, Optional[str]]] = None
+    socials: Optional[Dict[str, Optional[str]]] = None  # e.g., { ig, yt }
     specialties: Optional[List[str]] = None
 
 
