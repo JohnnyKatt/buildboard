@@ -427,7 +427,7 @@ async def upload_build_image(build_id: str, file: UploadFile = File(...), curren
     path = os.path.join(UPLOADS_DIR, fname)
     with open(path, "wb") as f:
         f.write(await file.read())
-    public_url = f"/uploads/{fname}"
+    public_url = f"/api/uploads/{fname}"
     gallery = build.get("gallery", []) + [public_url]
     await builds.update_one({"_id": build_id}, {"$set": {"gallery": gallery}})
     return {"url": public_url}
