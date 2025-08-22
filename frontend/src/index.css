@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .btn { @apply px-3 py-2 border rounded bg-white hover:bg-gray-50 active:bg-gray-100 text-sm; }
+  .btn-sm { @apply px-2 py-1 border rounded bg-white hover:bg-gray-50 active:bg-gray-100 text-xs; }
+  .btn-primary { @apply px-3 py-2 rounded bg-brand text-white hover:bg-brand-light active:bg-gray-900 text-sm; }
+  .input { @apply w-full px-3 py-2 border rounded outline-none focus:ring-2 focus:ring-brand/30; }
+  .tab { @apply px-3 py-1.5 border rounded text-sm bg-white; }
+  .tab-active { @apply bg-brand text-white border-brand; }
+}
