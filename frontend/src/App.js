@@ -279,10 +279,21 @@ function CreateShop({ onCreated }) {
   const [name, setName] = useState('My Shop');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const submit = async (e) => {
     e.preventDefault();
-    const { data } = await api.post('/shops', { name, locationCity: city, locationState: state });
-    onCreated(data);
+    setError('');
+    setLoading(true);
+    try {
+      const res = await api.post('/shops', { name, locationCity: city, locationState: state });
+      const data = res.data;
+      onCreated(data);
+    } catch (err) {
+      setError(err?.response?.data?.detail || 'Failed to create shop');
+    } finally {
+      setLoading(false);
+    }
   };
   return (
     <form onSubmit={submit} className="grid gap-2 max-w-sm">
@@ -291,7 +302,8 @@ function CreateShop({ onCreated }) {
         <input className="input flex-1" placeholder="City" value={city} onChange={e => setCity(e.target.value)} />
         <input className="input w-32" placeholder="State" value={state} onChange={e => setState(e.target.value)} />
       </div>
-      <button className="btn-primary">Create Shop</button>
+      {error && <div className="text-sm text-red-600">{error}</div>}
+      <button className="btn-primary" disabled={loading}>{loading ? 'Creating…' : 'Create Shop'}</button>
     </form>
   );
 }
