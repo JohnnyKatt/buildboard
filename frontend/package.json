@@ -2,7 +2,7 @@
   "name": "buildboard-frontend",
   "private": true,
   "version": "0.1.0",
-  "type": "module",
+  
   "scripts": {
     "start": "serve -s build -l 3000",
     "build": "react-scripts build",
