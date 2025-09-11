@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import * as LinkingExpo from 'expo-linking';
+import { router } from 'expo-router';
 
 const BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
@@ -110,7 +111,7 @@ export default function Refer() {
           {thanks ? (
             <View style={styles.thanksBox}>
               <Text style={styles.h3}>Thanks—your referral was submitted. We’ll reach out and keep you posted.</Text>
-              <Pressable onPress={() => LinkingExpo.openURL('/')} style={styles.primaryCta} hitSlop={8}>
+              <Pressable onPress={() => router.replace('/')} style={styles.primaryCta} hitSlop={8}>
                 <Text style={styles.primaryCtaText}>Back to Home</Text>
               </Pressable>
             </View>
