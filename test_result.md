@@ -105,26 +105,32 @@
 ## backend:
 ##   - task: "Create Waitlist API"
 ##     implemented: true
-##     working: false
+##     working: true
 ##     file: "/app/backend/server.py"
 ##     stuck_count: 0
 ##     priority: "high"
-##     needs_retesting: true
+##     needs_retesting: false
 ##     status_history:
 ##         -working: true
 ##         -agent: "main"
 ##         -comment: "Implemented POST /api/waitlist storing fields incl. UTM and source_url"
+##         -working: true
+##         -agent: "testing"
+##         -comment: "✅ TESTED: POST /api/waitlist endpoint working correctly. Returns 200 with valid MongoDB ObjectId (24 chars) and accurate created_at timestamp. All required fields (name, email, role, UTM params, source_url) properly stored. MongoDB insertion verified."
 ##   - task: "Create Referrals API"
 ##     implemented: true
-##     working: false
+##     working: true
 ##     file: "/app/backend/server.py"
 ##     stuck_count: 0
 ##     priority: "high"
-##     needs_retesting: true
+##     needs_retesting: false
 ##     status_history:
 ##         -working: true
 ##         -agent: "main"
 ##         -comment: "Implemented POST /api/referrals with validation and UTM capture"
+##         -working: true
+##         -agent: "testing"
+##         -comment: "✅ TESTED: POST /api/referrals endpoint working correctly. Returns 200 with valid MongoDB ObjectId and timestamp. Validation working - correctly rejects invalid referral_type 'Other' with 422 status. All fields properly stored including UTM params."
 ## frontend:
 ##   - task: "Landing page UI with sections and sticky header"
 ##     implemented: true
