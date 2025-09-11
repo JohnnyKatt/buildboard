@@ -173,8 +173,9 @@
 ##
 ## test_plan:
 ##   current_focus:
-##     - "Create Waitlist API"
-##     - "Create Referrals API"
+##     - "Landing page UI with sections and sticky header"
+##     - "Waitlist form with validation and thank you"
+##     - "Refer screen with form and thank you"
 ##   stuck_tasks:
 ##     - "None"
 ##   test_all: false
@@ -183,3 +184,5 @@
 ## agent_communication:
 ##     -agent: "main"
 ##     -message: "Please verify POST /api/waitlist and POST /api/referrals with sample payloads and confirm persistence. No auth. Also check CORS."
+##     -agent: "testing"
+##     -message: "✅ BACKEND TESTING COMPLETE: All backend APIs are working perfectly. Created comprehensive backend_test.py with 5 test cases. Results: GET /api/ ✅, POST /api/waitlist ✅, POST /api/referrals ✅, Validation (422 for invalid referral_type) ✅, CORS ✅. MongoDB insertion verified with accurate timestamps and proper ObjectId format. Backend is production-ready. Focus should now shift to frontend testing if needed."
