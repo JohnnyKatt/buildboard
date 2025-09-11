@@ -101,3 +101,79 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+## user_problem_statement: "Build a responsive single-page landing with waitlist + referrals and backend storage"
+## backend:
+##   - task: "Create Waitlist API"
+##     implemented: true
+##     working: false
+##     file: "/app/backend/server.py"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##     status_history:
+##         -working: true
+##         -agent: "main"
+##         -comment: "Implemented POST /api/waitlist storing fields incl. UTM and source_url"
+##   - task: "Create Referrals API"
+##     implemented: true
+##     working: false
+##     file: "/app/backend/server.py"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##     status_history:
+##         -working: true
+##         -agent: "main"
+##         -comment: "Implemented POST /api/referrals with validation and UTM capture"
+## frontend:
+##   - task: "Landing page UI with sections and sticky header"
+##     implemented: true
+##     working: false
+##     file: "/app/frontend/app/index.tsx"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##     status_history:
+##         -working: true
+##         -agent: "main"
+##         -comment: "Implemented all sections, smooth scroll, CTAs"
+##   - task: "Waitlist form with validation and thank you"
+##     implemented: true
+##     working: false
+##     file: "/app/frontend/app/index.tsx"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##     status_history:
+##         -working: true
+##         -agent: "main"
+##         -comment: "Implemented with react-hook-form, honeypot, UTM capture"
+##   - task: "Refer screen with form and thank you"
+##     implemented: true
+##     working: false
+##     file: "/app/frontend/app/refer.tsx"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##     status_history:
+##         -working: true
+##         -agent: "main"
+##         -comment: "Built /refer form and submission"
+## metadata:
+##   created_by: "main_agent"
+##   version: "1.0"
+##   test_sequence: 1
+##   run_ui: false
+##
+## test_plan:
+##   current_focus:
+##     - "Create Waitlist API"
+##     - "Create Referrals API"
+##   stuck_tasks:
+##     - "None"
+##   test_all: false
+##   test_priority: "high_first"
+##
+## agent_communication:
+##     -agent: "main"
+##     -message: "Please verify POST /api/waitlist and POST /api/referrals with sample payloads and confirm persistence. No auth. Also check CORS."
