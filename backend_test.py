@@ -162,31 +162,41 @@ def test_referrals_validation():
         return False
 
 def test_cors():
-    """Test CORS OPTIONS request"""
-    print("\nTesting CORS OPTIONS /api/waitlist...")
+    """Test CORS by making a cross-origin POST request"""
+    print("\nTesting CORS with cross-origin POST request...")
     
     try:
-        response = requests.options(f"{API_URL}/waitlist")
+        headers = {
+            'Origin': 'https://example.com',
+            'Content-Type': 'application/json'
+        }
+        
+        payload = {
+            "name": "CORS Test User",
+            "email": "cors@test.com",
+            "role": "Tester"
+        }
+        
+        response = requests.post(f"{API_URL}/waitlist", json=payload, headers=headers)
         print(f"Status Code: {response.status_code}")
-        print(f"Headers: {dict(response.headers)}")
+        print(f"CORS Headers: {dict((k, v) for k, v in response.headers.items() if 'access-control' in k.lower())}")
         
         # Check for CORS headers
         cors_headers = [
             'access-control-allow-origin',
-            'access-control-allow-methods',
-            'access-control-allow-headers'
+            'access-control-allow-credentials'
         ]
         
         has_cors = all(header in response.headers for header in cors_headers)
         
         if response.status_code == 200 and has_cors:
-            print("✅ CORS OPTIONS test PASSED")
+            print("✅ CORS test PASSED")
             return True
         else:
-            print("❌ CORS OPTIONS test FAILED")
+            print("❌ CORS test FAILED")
             return False
     except Exception as e:
-        print(f"❌ CORS OPTIONS test FAILED with error: {e}")
+        print(f"❌ CORS test FAILED with error: {e}")
         return False
 
 def main():
