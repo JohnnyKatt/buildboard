@@ -75,7 +75,7 @@ function useUTM() {
 function Header({ onNav, navReady }: { onNav: (id: keyof typeof SECTION_IDS) => void; navReady: boolean }) {
   return (
     <View style={styles.headerContainer}>
-      <View style={styles.header}>
+      <View style={[styles.header, styles.containerWrap]}>
         <Text style={styles.logo}>Buildboard</Text>
         <View style={styles.nav}>
           <Pressable onPress={() => onNav('Problem')} hitSlop={8} disabled={!navReady}>
@@ -258,223 +258,225 @@ export default function Index() {
         <ScrollView
           ref={scrollRef}
           style={{ flex: 1, backgroundColor: '#000' }}
-          contentContainerStyle={{ paddingTop: 96 }}
+          contentContainerStyle={{ paddingTop: isMobile ? 72 : 96 }}
           onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Hero */}
-          <Animated.View
-            entering={FadeInUp.duration(500).delay(50)}
-            nativeID={SECTION_IDS.Hero}
-            onLayout={(e) => onLayoutSection(SECTION_IDS.Hero, e.nativeEvent.layout.y)}
-            style={styles.section}
-          >
-            <Text style={styles.heroTitle}>The social marketplace for automotive builds.</Text>
-            <Text style={styles.heroSubtitle}>
-              Document your build. Tag every part. Connect with shops and brands.
-            </Text>
-            <View style={[styles.row, { flexWrap: 'wrap', gap: 12 }]}>
-              <Pressable onPress={() => onNav('Signup')} style={styles.primaryCtaLg} disabled={!navReady}>
-                <Text style={styles.primaryCtaText}>Join the Beta Waitlist</Text>
-              </Pressable>
-              <Pressable onPress={() => router.push('/refer')} style={styles.secondaryCtaLg}>
-                <Text style={styles.secondaryCtaText}>Refer a Shop or Builder</Text>
-              </Pressable>
-            </View>
-            <View style={styles.heroMedia}>
-              <Text style={styles.mediaText}>Hero image / looping video placeholder</Text>
-            </View>
-          </Animated.View>
+          <View style={styles.containerWrap}>
+            {/* Hero */}
+            <Animated.View
+              entering={FadeInUp.duration(500).delay(50)}
+              nativeID={SECTION_IDS.Hero}
+              onLayout={(e) => onLayoutSection(SECTION_IDS.Hero, e.nativeEvent.layout.y)}
+              style={[styles.section, isMobile && styles.sectionMobile]}
+            >
+              <Text style={styles.heroTitle}>The social marketplace for automotive builds.</Text>
+              <Text style={styles.heroSubtitle}>
+                Document your build. Tag every part. Connect with shops and brands.
+              </Text>
+              <View style={[styles.row, { flexWrap: 'wrap', gap: 12 }]}>
+                <Pressable onPress={() => onNav('Signup')} style={styles.primaryCtaLg} disabled={!navReady}>
+                  <Text style={styles.primaryCtaText}>Join the Beta Waitlist</Text>
+                </Pressable>
+                <Pressable onPress={() => router.push('/refer')} style={styles.secondaryCtaLg}>
+                  <Text style={styles.secondaryCtaText}>Refer a Shop or Builder</Text>
+                </Pressable>
+              </View>
+              <View style={styles.heroMedia}>
+                <Text style={styles.mediaText}>Hero image / looping video placeholder</Text>
+              </View>
+            </Animated.View>
 
-          {/* Problem */}
-          <Animated.View entering={FadeIn.duration(600).delay(100)} nativeID={SECTION_IDS.Problem} onLayout={(e) => onLayoutSection(SECTION_IDS.Problem, e.nativeEvent.layout.y)} style={styles.section}>
-            <Text style={styles.h2}>Car culture is scattered. Buildboard organizes it.</Text>
-            <View style={styles.bullets}>
-              <Text style={styles.bullet}>• Finding parts from a build = endless scrolling.</Text>
-              <Text style={styles.bullet}>• Builders/shops get attention, not tools to grow.</Text>
-              <Text style={styles.bullet}>• Brands can’t see where parts end up (no attribution).</Text>
-            </View>
-          </Animated.View>
+            {/* Problem */}
+            <Animated.View entering={FadeIn.duration(600).delay(100)} nativeID={SECTION_IDS.Problem} onLayout={(e) => onLayoutSection(SECTION_IDS.Problem, e.nativeEvent.layout.y)} style={[styles.section, isMobile && styles.sectionMobile]}>
+              <Text style={styles.h2}>Car culture is scattered. Buildboard organizes it.</Text>
+              <View style={styles.bullets}>
+                <Text style={styles.bullet}>• Finding parts from a build = endless scrolling.</Text>
+                <Text style={styles.bullet}>• Builders/shops get attention, not tools to grow.</Text>
+                <Text style={styles.bullet}>• Brands can’t see where parts end up (no attribution).</Text>
+              </View>
+            </Animated.View>
 
-          {/* Solution */}
-          <Animated.View entering={FadeInRight.duration(600).delay(150)} nativeID={SECTION_IDS.Solution} onLayout={(e) => onLayoutSection(SECTION_IDS.Solution, e.nativeEvent.layout.y)} style={styles.section}>
-            <Text style={styles.h2}>Every build has a story. Buildboard makes it searchable, shoppable, and shareable.</Text>
-            <View style={[styles.grid, isMobile ? undefined : styles.gridRow]}>
-              {[
-                { title: 'Document', desc: 'Capture parts, steps, and credits for every build.' },
-                { title: 'Discover', desc: 'Search builds by model, parts, brands, and shops.' },
-                { title: 'Earn', desc: 'Get attribution and affiliate opportunities for contributions.' },
-              ].map((c) => (
-                <View key={c.title} style={[styles.card, { flex: 1, minWidth: isMobile ? '100%' : '30%' }]}>
-                  <Text style={styles.cardTitle}>{c.title}</Text>
-                  <Text style={styles.cardDesc}>{c.desc}</Text>
+            {/* Solution */}
+            <Animated.View entering={FadeInRight.duration(600).delay(150)} nativeID={SECTION_IDS.Solution} onLayout={(e) => onLayoutSection(SECTION_IDS.Solution, e.nativeEvent.layout.y)} style={[styles.section, isMobile && styles.sectionMobile]}>
+              <Text style={styles.h2}>Every build has a story. Buildboard makes it searchable, shoppable, and shareable.</Text>
+              <View style={[styles.grid, isMobile ? undefined : styles.gridRow]}>
+                {[
+                  { title: 'Document', desc: 'Capture parts, steps, and credits for every build.' },
+                  { title: 'Discover', desc: 'Search builds by model, parts, brands, and shops.' },
+                  { title: 'Earn', desc: 'Get attribution and affiliate opportunities for contributions.' },
+                ].map((c) => (
+                  <View key={c.title} style={[styles.card, { flex: 1, minWidth: isMobile ? '100%' : '30%' }]}>
+                    <Text style={styles.cardTitle}>{c.title}</Text>
+                    <Text style={styles.cardDesc}>{c.desc}</Text>
+                  </View>
+                ))}
+              </View>
+            </Animated.View>
+
+            {/* Product */}
+            <Animated.View entering={FadeIn.duration(600).delay(200)} nativeID={SECTION_IDS.Product} onLayout={(e) => onLayoutSection(SECTION_IDS.Product, e.nativeEvent.layout.y)} style={[styles.section, isMobile && styles.sectionMobile]}>
+              <Text style={styles.h2}>Your build. Your story. Your credit.</Text>
+              <View style={styles.bullets}>
+                {['Profile pages', 'Build pages', 'Tagged parts', 'Clean interface'].map((b) => (
+                  <Text key={b} style={styles.bullet}>• {b}</Text>
+                ))}
+              </View>
+              <View style={styles.mockup}>
+                <Text style={styles.mediaText}>Product mockup placeholder</Text>
+              </View>
+            </Animated.View>
+
+            {/* Who It's For */}
+            <Animated.View entering={FadeInUp.duration(600).delay(250)} nativeID={SECTION_IDS.WhoFor} onLayout={(e) => onLayoutSection(SECTION_IDS.WhoFor, e.nativeEvent.layout.y)} style={[styles.section, isMobile && styles.sectionMobile]}>
+              <Text style={styles.h2}>Built for everyone in car culture.</Text>
+              <View style={[styles.grid, isMobile ? undefined : styles.gridRow]}>
+                {[
+                  { title: 'Enthusiasts', desc: 'Track your build and discover proven parts.' },
+                  { title: 'Builders', desc: 'Showcase work and get proper credit.' },
+                  { title: 'Shops', desc: 'Document installs and generate leads.' },
+                  { title: 'Brands', desc: 'See real-world usage and attribution.' },
+                ].map((c) => (
+                  <View key={c.title} style={[styles.card, { flex: 1, minWidth: isMobile ? '100%' : '45%' }]}>
+                    <Text style={styles.cardTitle}>{c.title}</Text>
+                    <Text style={styles.cardDesc}>{c.desc}</Text>
+                  </View>
+                ))}
+              </View>
+            </Animated.View>
+
+            {/* Community */}
+            <Animated.View entering={FadeInRight.duration(600).delay(300)} nativeID={SECTION_IDS.Community} onLayout={(e) => onLayoutSection(SECTION_IDS.Community, e.nativeEvent.layout.y)} style={[styles.section, isMobile && styles.sectionMobile]}>
+              <Text style={styles.h2}>Built by the community, for the community.</Text>
+              <View style={[styles.grid, isMobile ? undefined : styles.gridRow]}>
+                {[
+                  '“Finally, a place to see complete builds with sources.”',
+                  '“I can tag every part and credit shops properly.”',
+                  '“Brands can find real installs and reward creators.”',
+                ].map((q, idx) => (
+                  <View key={idx} style={[styles.card, { flex: 1, minWidth: isMobile ? '100%' : '30%' }]}>
+                    <Text style={styles.cardDesc}>{q}</Text>
+                  </View>
+                ))}
+              </View>
+            </Animated.View>
+
+            {/* Signup */}
+            <Animated.View entering={FadeIn.duration(600).delay(350)} nativeID={SECTION_IDS.Signup} onLayout={(e) => onLayoutSection(SECTION_IDS.Signup, e.nativeEvent.layout.y)} style={[styles.section, isMobile && styles.sectionMobile]}>
+              <Text style={styles.h2}>Be first to the line.</Text>
+              <Text style={styles.subhead}>Join the beta waitlist and help shape the future of car culture.</Text>
+
+              {thankYou ? (
+                <View style={styles.thanksBox}>
+                  <Text style={styles.h3}>You’re on the list. We’ll be in touch soon. Follow along @thebuildboard.</Text>
+                  <Pressable onPress={() => openInstagram('thankyou')} style={styles.primaryCta} hitSlop={8}>
+                    <Text style={styles.primaryCtaText}>Open Instagram</Text>
+                  </Pressable>
                 </View>
-              ))}
-            </View>
-          </Animated.View>
+              ) : (
+                <View style={styles.form}>
+                  {/* Honeypot */}
+                  <Controller
+                    control={control}
+                    name="hp"
+                    render={({ field: { onChange, value } }) => (
+                      <TextInput value={value} onChangeText={onChange} style={styles.honeypot} accessibilityElementsHidden accessibilityLabel="Do not fill" />
+                    )}
+                  />
+                  <Text style={styles.label}>Name</Text>
+                  <Controller
+                    control={control}
+                    name="name"
+                    rules={{ required: true, minLength: 2 }}
+                    render={({ field: { onChange, value } }) => (
+                      <TextInput
+                        value={value}
+                        onChangeText={onChange}
+                        placeholder="Your name"
+                        placeholderTextColor="#666"
+                        style={styles.input}
+                        onSubmitEditing={Keyboard.dismiss}
+                      />
+                    )}
+                  />
+                  {formState.errors.name ? <Text style={styles.error}>Name is required.</Text> : null}
 
-          {/* Product */}
-          <Animated.View entering={FadeIn.duration(600).delay(200)} nativeID={SECTION_IDS.Product} onLayout={(e) => onLayoutSection(SECTION_IDS.Product, e.nativeEvent.layout.y)} style={styles.section}>
-            <Text style={styles.h2}>Your build. Your story. Your credit.</Text>
-            <View style={styles.bullets}>
-              {['Profile pages', 'Build pages', 'Tagged parts', 'Clean interface'].map((b) => (
-                <Text key={b} style={styles.bullet}>• {b}</Text>
-              ))}
-            </View>
-            <View style={styles.mockup}>
-              <Text style={styles.mediaText}>Product mockup placeholder</Text>
-            </View>
-          </Animated.View>
+                  <Text style={styles.label}>Email</Text>
+                  <Controller
+                    control={control}
+                    name="email"
+                    rules={{
+                      required: true,
+                      pattern: /[^\s@]+@[^\s@]+\.[^\s@]+/,
+                    }}
+                    render={({ field: { onChange, value } }) => (
+                      <TextInput
+                        value={value}
+                        onChangeText={onChange}
+                        placeholder="name@example.com"
+                        placeholderTextColor="#666"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        style={styles.input}
+                      />
+                    )}
+                  />
+                  <Text style={styles.smallNote}>No spam. We’ll only email about the beta.</Text>
+                  {formState.errors.email ? <Text style={styles.error}>Valid email required.</Text> : null}
 
-          {/* Who It's For */}
-          <Animated.View entering={FadeInUp.duration(600).delay(250)} nativeID={SECTION_IDS.WhoFor} onLayout={(e) => onLayoutSection(SECTION_IDS.WhoFor, e.nativeEvent.layout.y)} style={styles.section}>
-            <Text style={styles.h2}>Built for everyone in car culture.</Text>
-            <View style={[styles.grid, isMobile ? undefined : styles.gridRow]}>
-              {[
-                { title: 'Enthusiasts', desc: 'Track your build and discover proven parts.' },
-                { title: 'Builders', desc: 'Showcase work and get proper credit.' },
-                { title: 'Shops', desc: 'Document installs and generate leads.' },
-                { title: 'Brands', desc: 'See real-world usage and attribution.' },
-              ].map((c) => (
-                <View key={c.title} style={[styles.card, { flex: 1, minWidth: isMobile ? '100%' : '45%' }]}>
-                  <Text style={styles.cardTitle}>{c.title}</Text>
-                  <Text style={styles.cardDesc}>{c.desc}</Text>
+                  <Text style={styles.label}>Role</Text>
+                  <Controller
+                    control={control}
+                    name="role"
+                    rules={{ required: true }}
+                    render={({ field: { onChange, value } }) => (
+                      <View style={styles.select}>
+                        {['Enthusiast', 'Builder', 'Shop', 'Brand'].map((r) => (
+                          <Pressable
+                            key={r}
+                            onPress={() => onChange(r as any)}
+                            style={[styles.selectOption, value === r && styles.selectOptionActive]}
+                          >
+                            <Text style={styles.selectOptionText}>{r}</Text>
+                          </Pressable>
+                        ))}
+                      </View>
+                    )}
+                  />
+                  {formState.errors.role ? <Text style={styles.error}>Role is required.</Text> : null}
+
+                  <Pressable onPress={handleSubmit(submitWaitlist)} style={[styles.primaryCta, { marginTop: 16, opacity: canSubmit ? 1 : 0.5 }]} disabled={!canSubmit}>
+                    {submitting ? <ActivityIndicator color="#000" /> : <Text style={styles.primaryCtaText}>Join the Beta Waitlist</Text>}
+                  </Pressable>
+                  {submitError ? <Text style={styles.error}>{submitError}</Text> : null}
+                  <Text style={styles.privacy}>By joining, you agree to occasional updates. Unsubscribe anytime.</Text>
                 </View>
-              ))}
-            </View>
-          </Animated.View>
+              )}
+            </Animated.View>
 
-          {/* Community */}
-          <Animated.View entering={FadeInRight.duration(600).delay(300)} nativeID={SECTION_IDS.Community} onLayout={(e) => onLayoutSection(SECTION_IDS.Community, e.nativeEvent.layout.y)} style={styles.section}>
-            <Text style={styles.h2}>Built by the community, for the community.</Text>
-            <View style={[styles.grid, isMobile ? undefined : styles.gridRow]}>
-              {[
-                '“Finally, a place to see complete builds with sources.”',
-                '“I can tag every part and credit shops properly.”',
-                '“Brands can find real installs and reward creators.”',
-              ].map((q, idx) => (
-                <View key={idx} style={[styles.card, { flex: 1, minWidth: isMobile ? '100%' : '30%' }]}>
-                  <Text style={styles.cardDesc}>{q}</Text>
+            {/* Footer */}
+            <Animated.View entering={FadeInUp.duration(600).delay(400)} nativeID={SECTION_IDS.Footer} onLayout={(e) => onLayoutSection(SECTION_IDS.Footer, e.nativeEvent.layout.y)} style={[styles.section, styles.footer, isMobile && styles.sectionMobile]}>
+              <Text style={styles.footerTagline}>Every car has a story. Every part has a source. Every builder gets credit.</Text>
+              <View style={[styles.footerRow, { flexDirection: isMobile ? 'column' : 'row' }]}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.label}>Stay in the loop</Text>
+                  <FooterEmail onSubmit={submitFooterEmail} />
                 </View>
-              ))}
-            </View>
-          </Animated.View>
-
-          {/* Signup */}
-          <Animated.View entering={FadeIn.duration(600).delay(350)} nativeID={SECTION_IDS.Signup} onLayout={(e) => onLayoutSection(SECTION_IDS.Signup, e.nativeEvent.layout.y)} style={styles.section}>
-            <Text style={styles.h2}>Be first to the line.</Text>
-            <Text style={styles.subhead}>Join the beta waitlist and help shape the future of car culture.</Text>
-
-            {thankYou ? (
-              <View style={styles.thanksBox}>
-                <Text style={styles.h3}>You’re on the list. We’ll be in touch soon. Follow along @thebuildboard.</Text>
-                <Pressable onPress={() => openInstagram('thankyou')} style={styles.primaryCta} hitSlop={8}>
-                  <Text style={styles.primaryCtaText}>Open Instagram</Text>
-                </Pressable>
+                <View style={{ flex: 1, gap: 8 }}>
+                  <Pressable onPress={() => {}} hitSlop={8}>
+                    <Text style={styles.link}>About</Text>
+                  </Pressable>
+                  <Pressable onPress={() => LinkingExpo.openURL('mailto:team@buildboard.app')} hitSlop={8}>
+                    <Text style={styles.link}>Contact</Text>
+                  </Pressable>
+                  <Pressable onPress={() => openInstagram('footer')} hitSlop={8}>
+                    <Text style={styles.link}>Instagram @thebuildboard</Text>
+                  </Pressable>
+                </View>
               </View>
-            ) : (
-              <View style={styles.form}>
-                {/* Honeypot */}
-                <Controller
-                  control={control}
-                  name="hp"
-                  render={({ field: { onChange, value } }) => (
-                    <TextInput value={value} onChangeText={onChange} style={styles.honeypot} accessibilityElementsHidden accessibilityLabel="Do not fill" />
-                  )}
-                />
-                <Text style={styles.label}>Name</Text>
-                <Controller
-                  control={control}
-                  name="name"
-                  rules={{ required: true, minLength: 2 }}
-                  render={({ field: { onChange, value } }) => (
-                    <TextInput
-                      value={value}
-                      onChangeText={onChange}
-                      placeholder="Your name"
-                      placeholderTextColor="#666"
-                      style={styles.input}
-                      onSubmitEditing={Keyboard.dismiss}
-                    />
-                  )}
-                />
-                {formState.errors.name ? <Text style={styles.error}>Name is required.</Text> : null}
-
-                <Text style={styles.label}>Email</Text>
-                <Controller
-                  control={control}
-                  name="email"
-                  rules={{
-                    required: true,
-                    pattern: /[^\s@]+@[^\s@]+\.[^\s@]+/,
-                  }}
-                  render={({ field: { onChange, value } }) => (
-                    <TextInput
-                      value={value}
-                      onChangeText={onChange}
-                      placeholder="name@example.com"
-                      placeholderTextColor="#666"
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      style={styles.input}
-                    />
-                  )}
-                />
-                <Text style={styles.smallNote}>No spam. We’ll only email about the beta.</Text>
-                {formState.errors.email ? <Text style={styles.error}>Valid email required.</Text> : null}
-
-                <Text style={styles.label}>Role</Text>
-                <Controller
-                  control={control}
-                  name="role"
-                  rules={{ required: true }}
-                  render={({ field: { onChange, value } }) => (
-                    <View style={styles.select}>
-                      {['Enthusiast', 'Builder', 'Shop', 'Brand'].map((r) => (
-                        <Pressable
-                          key={r}
-                          onPress={() => onChange(r as any)}
-                          style={[styles.selectOption, value === r && styles.selectOptionActive]}
-                        >
-                          <Text style={styles.selectOptionText}>{r}</Text>
-                        </Pressable>
-                      ))}
-                    </View>
-                  )}
-                />
-                {formState.errors.role ? <Text style={styles.error}>Role is required.</Text> : null}
-
-                <Pressable onPress={handleSubmit(submitWaitlist)} style={[styles.primaryCta, { marginTop: 16, opacity: canSubmit ? 1 : 0.5 }]} disabled={!canSubmit}>
-                  {submitting ? <ActivityIndicator color="#000" /> : <Text style={styles.primaryCtaText}>Join the Beta Waitlist</Text>}
-                </Pressable>
-                {submitError ? <Text style={styles.error}>{submitError}</Text> : null}
-                <Text style={styles.privacy}>By joining, you agree to occasional updates. Unsubscribe anytime.</Text>
-              </View>
-            )}
-          </Animated.View>
-
-          {/* Footer */}
-          <Animated.View entering={FadeInUp.duration(600).delay(400)} nativeID={SECTION_IDS.Footer} onLayout={(e) => onLayoutSection(SECTION_IDS.Footer, e.nativeEvent.layout.y)} style={[styles.section, styles.footer]}>
-            <Text style={styles.footerTagline}>Every car has a story. Every part has a source. Every builder gets credit.</Text>
-            <View style={[styles.footerRow, { flexDirection: isMobile ? 'column' : 'row' }]}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.label}>Stay in the loop</Text>
-                <FooterEmail onSubmit={submitFooterEmail} />
-              </View>
-              <View style={{ flex: 1, gap: 8 }}>
-                <Pressable onPress={() => {}} hitSlop={8}>
-                  <Text style={styles.link}>About</Text>
-                </Pressable>
-                <Pressable onPress={() => LinkingExpo.openURL('mailto:team@buildboard.app')} hitSlop={8}>
-                  <Text style={styles.link}>Contact</Text>
-                </Pressable>
-                <Pressable onPress={() => openInstagram('footer')} hitSlop={8}>
-                  <Text style={styles.link}>Instagram @thebuildboard</Text>
-                </Pressable>
-              </View>
-            </View>
-            <Text style={styles.copy}>© Buildboard 2025</Text>
-          </Animated.View>
+              <Text style={styles.copy}>© Buildboard 2025</Text>
+            </Animated.View>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -501,6 +503,7 @@ function FooterEmail({ onSubmit }: { onSubmit: (email: string) => void }) {
 }
 
 const styles = StyleSheet.create({
+  containerWrap: { width: '100%', maxWidth: 1120, alignSelf: 'center' },
   headerContainer: {
     position: 'absolute',
     top: 0,
@@ -527,6 +530,7 @@ const styles = StyleSheet.create({
   secondaryCtaText: { color: '#fff' },
 
   section: { paddingHorizontal: 16, paddingVertical: 32, gap: 16 },
+  sectionMobile: { paddingVertical: 24 },
   row: { flexDirection: 'row', alignItems: 'center' },
   heroTitle: { color: '#fff', fontSize: 28, fontWeight: '800' },
   heroSubtitle: { color: '#ccc', fontSize: 16 },

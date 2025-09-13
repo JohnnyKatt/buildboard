@@ -83,7 +83,6 @@ export default function Refer() {
   const submit = async (values: ReferralForm) => {
     setSubmitError(null);
     if ((values.hp || '').trim().length > 0) return; // honeypot
-    // Client-side referral_type guard
     if (values.referral_type !== 'Shop' && values.referral_type !== 'Builder') {
       setSubmitError('Please select a valid referral type.');
       return;
@@ -127,91 +126,93 @@ export default function Refer() {
     <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
-          <Text style={styles.logo}>Buildboard</Text>
-          <Text style={styles.h2}>Refer a Shop or Builder</Text>
+          <View style={styles.containerWrap}>
+            <Text style={styles.logo}>Buildboard</Text>
+            <Text style={styles.h2}>Refer a Shop or Builder</Text>
 
-          {thanks ? (
-            <View style={styles.thanksBox}>
-              <Text style={styles.h3}>Thanks—your referral was submitted. We’ll reach out and keep you posted.</Text>
-              <Pressable onPress={() => router.replace('/')} style={styles.primaryCta} hitSlop={8}>
-                <Text style={styles.primaryCtaText}>Back to Home</Text>
-              </Pressable>
-            </View>
-          ) : (
-            <View style={{ gap: 8 }}>
-              {/* honeypot */}
-              <Controller control={control} name="hp" render={({ field: { onChange, value } }) => (
-                <TextInput value={value} onChangeText={onChange} style={styles.honeypot} accessibilityElementsHidden accessibilityLabel="Do not fill" />
-              )} />
+            {thanks ? (
+              <View style={styles.thanksBox}>
+                <Text style={styles.h3}>Thanks—your referral was submitted. We’ll reach out and keep you posted.</Text>
+                <Pressable onPress={() => router.replace('/')} style={styles.primaryCta} hitSlop={8}>
+                  <Text style={styles.primaryCtaText}>Back to Home</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View style={{ gap: 8 }}>
+                {/* honeypot */}
+                <Controller control={control} name="hp" render={({ field: { onChange, value } }) => (
+                  <TextInput value={value} onChangeText={onChange} style={styles.honeypot} accessibilityElementsHidden accessibilityLabel="Do not fill" />
+                )} />
 
-              <Text style={styles.label}>Your Name</Text>
-              <Controller
-                control={control}
-                name="referrer_name"
-                rules={{ required: true, minLength: 2 }}
-                render={({ field: { onChange, value } }) => (
-                  <TextInput value={value} onChangeText={onChange} placeholder="Your name" placeholderTextColor="#666" style={styles.input} />
-                )}
-              />
-              {formState.errors.referrer_name ? <Text style={styles.error}>Name is required.</Text> : null}
+                <Text style={styles.label}>Your Name</Text>
+                <Controller
+                  control={control}
+                  name="referrer_name"
+                  rules={{ required: true, minLength: 2 }}
+                  render={({ field: { onChange, value } }) => (
+                    <TextInput value={value} onChangeText={onChange} placeholder="Your name" placeholderTextColor="#666" style={styles.input} />
+                  )}
+                />
+                {formState.errors.referrer_name ? <Text style={styles.error}>Name is required.</Text> : null}
 
-              <Text style={styles.label}>Your Email</Text>
-              <Controller
-                control={control}
-                name="referrer_email"
-                rules={{ required: true, pattern: /[^\s@]+@[^\s@]+\.[^\s@]+/ }}
-                render={({ field: { onChange, value } }) => (
-                  <TextInput value={value} onChangeText={onChange} placeholder="you@example.com" placeholderTextColor="#666" style={styles.input} autoCapitalize="none" keyboardType="email-address" />
-                )}
-              />
-              <Text style={styles.smallNote}>No spam. We’ll only email about the beta.</Text>
-              {formState.errors.referrer_email ? <Text style={styles.error}>Valid email required.</Text> : null}
+                <Text style={styles.label}>Your Email</Text>
+                <Controller
+                  control={control}
+                  name="referrer_email"
+                  rules={{ required: true, pattern: /[^\s@]+@[^\s@]+\.[^\s@]+/ }}
+                  render={({ field: { onChange, value } }) => (
+                    <TextInput value={value} onChangeText={onChange} placeholder="you@example.com" placeholderTextColor="#666" style={styles.input} autoCapitalize="none" keyboardType="email-address" />
+                  )}
+                />
+                <Text style={styles.smallNote}>No spam. We’ll only email about the beta.</Text>
+                {formState.errors.referrer_email ? <Text style={styles.error}>Valid email required.</Text> : null}
 
-              <Text style={styles.label}>Referral Type</Text>
-              <Controller
-                control={control}
-                name="referral_type"
-                rules={{ required: true }}
-                render={({ field: { onChange, value } }) => (
-                  <View style={styles.select}>
-                    {['Shop', 'Builder'].map((r) => (
-                      <Pressable key={r} onPress={() => onChange(r as any)} style={[styles.selectOption, value === r && styles.selectOptionActive]}>
-                        <Text style={styles.selectOptionText}>{r}</Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                )}
-              />
-              {formState.errors.referral_type ? <Text style={styles.error}>Type is required.</Text> : null}
+                <Text style={styles.label}>Referral Type</Text>
+                <Controller
+                  control={control}
+                  name="referral_type"
+                  rules={{ required: true }}
+                  render={({ field: { onChange, value } }) => (
+                    <View style={styles.select}>
+                      {['Shop', 'Builder'].map((r) => (
+                        <Pressable key={r} onPress={() => onChange(r as any)} style={[styles.selectOption, value === r && styles.selectOptionActive]}>
+                          <Text style={styles.selectOptionText}>{r}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  )}
+                />
+                {formState.errors.referral_type ? <Text style={styles.error}>Type is required.</Text> : null}
 
-              <Text style={styles.label}>Referral Name</Text>
-              <Controller
-                control={control}
-                name="referral_name"
-                rules={{ required: true, minLength: 2 }}
-                render={({ field: { onChange, value } }) => (
-                  <TextInput value={value} onChangeText={onChange} placeholder="Shop/Builder name" placeholderTextColor="#666" style={styles.input} />
-                )}
-              />
-              {formState.errors.referral_name ? <Text style={styles.error}>Referral name is required.</Text> : null}
+                <Text style={styles.label}>Referral Name</Text>
+                <Controller
+                  control={control}
+                  name="referral_name"
+                  rules={{ required: true, minLength: 2 }}
+                  render={({ field: { onChange, value } }) => (
+                    <TextInput value={value} onChangeText={onChange} placeholder="Shop/Builder name" placeholderTextColor="#666" style={styles.input} />
+                  )}
+                />
+                {formState.errors.referral_name ? <Text style={styles.error}>Referral name is required.</Text> : null}
 
-              <Text style={styles.label}>Instagram / Website (optional)</Text>
-              <Controller control={control} name="referral_contact" render={({ field: { onChange, value } }) => (
-                <TextInput value={value} onChangeText={onChange} placeholder="@handle or https://" placeholderTextColor="#666" style={styles.input} />
-              )} />
+                <Text style={styles.label}>Instagram / Website (optional)</Text>
+                <Controller control={control} name="referral_contact" render={({ field: { onChange, value } }) => (
+                  <TextInput value={value} onChangeText={onChange} placeholder="@handle or https://" placeholderTextColor="#666" style={styles.input} />
+                )} />
 
-              <Text style={styles.label}>Notes (optional)</Text>
-              <Controller control={control} name="notes" render={({ field: { onChange, value } }) => (
-                <TextInput value={value} onChangeText={onChange} placeholder="Anything we should know" placeholderTextColor="#666" style={[styles.input, { height: 100, textAlignVertical: 'top' }]} multiline />
-              )} />
+                <Text style={styles.label}>Notes (optional)</Text>
+                <Controller control={control} name="notes" render={({ field: { onChange, value } }) => (
+                  <TextInput value={value} onChangeText={onChange} placeholder="Anything we should know" placeholderTextColor="#666" style={[styles.input, { height: 100, textAlignVertical: 'top' }]} multiline />
+                )} />
 
-              <Pressable onPress={handleSubmit(submit)} style={[styles.primaryCta, { marginTop: 16, opacity: canSubmit ? 1 : 0.5 }]} disabled={!canSubmit}>
-                {submitting ? <ActivityIndicator color="#000" /> : <Text style={styles.primaryCtaText}>Submit</Text>}
-              </Pressable>
-              {submitError ? <Text style={styles.error}>{submitError}</Text> : null}
-              <Text style={styles.privacy}>By joining, you agree to occasional updates. Unsubscribe anytime.</Text>
-            </View>
-          )}
+                <Pressable onPress={handleSubmit(submit)} style={[styles.primaryCta, { marginTop: 16, opacity: canSubmit ? 1 : 0.5 }]} disabled={!canSubmit}>
+                  {submitting ? <ActivityIndicator color="#000" /> : <Text style={styles.primaryCtaText}>Submit</Text>}
+                </Pressable>
+                {submitError ? <Text style={styles.error}>{submitError}</Text> : null}
+                <Text style={styles.privacy}>By joining, you agree to occasional updates. Unsubscribe anytime.</Text>
+              </View>
+            )}
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -219,6 +220,7 @@ export default function Refer() {
 }
 
 const styles = StyleSheet.create({
+  containerWrap: { width: '100%', maxWidth: 1120, alignSelf: 'center' },
   logo: { color: '#fff', fontSize: 20, fontWeight: '700', marginBottom: 12 },
   h2: { color: '#fff', fontSize: 22, fontWeight: '700', marginBottom: 8 },
   h3: { color: '#fff', fontSize: 18, fontWeight: '700' },
