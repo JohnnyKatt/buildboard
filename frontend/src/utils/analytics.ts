@@ -61,3 +61,11 @@ export function trackReferralSubmit(params: { referral_type?: string; utm_source
 export function trackOutboundInstagram(params?: { location?: 'header' | 'footer' | 'thankyou' }) {
   return sendGA4('outbound_click_instagram', params || {});
 }
+
+export function trackWaitlistSuccessModalShown() {
+  return sendGA4('waitlist_success_modal_shown', {});
+}
+
+export function trackReferralSuccessModalShown() {
+  return sendGA4('referral_success_modal_shown', {});
+}
