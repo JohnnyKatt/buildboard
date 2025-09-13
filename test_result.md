@@ -204,6 +204,8 @@
 ##     -message: "Run mobile viewport tests per user checklist. Also verify network to /api endpoints for success, and that no request occurs when honeypot filled."
 ##     -agent: "testing"
 ##     -message: "✅ MOBILE TESTING COMPLETED: Tested all features on iPhone 14 viewport (390x844). WORKING: Footer email capture, responsive layout, analytics events, sticky header visibility. ISSUES FOUND: Smooth scroll navigation not working (header CTA and nav links don't scroll to sections), signup form validation not triggering, form submissions not working properly. Instagram links and refer form need additional testing. Backend APIs are confirmed working from previous tests."
+##     -agent: "testing"
+##     -message: "✅ COMPREHENSIVE MOBILE RE-TEST COMPLETED (390x844 & 360x800): WORKING FEATURES: Footer email capture (invalid blocked, valid sent with Subscriber role), Analytics events (waitlist_submit, referral_submit, outbound_click_instagram all firing correctly), Refer form (navigation, honeypot, success path, thank you state), Instagram links (window.open calls with correct URLs), API negative testing (422 for invalid referral_type). CRITICAL ISSUES: Header sticky behavior broken (position:absolute/zIndex selectors not working), Navigation smooth scroll completely broken (all nav links and Hero CTA remain at scroll position 0), Signup form validation broken (no inline errors, no API requests, no thank you state). Touch targets need improvement (button heights <44px). Main agent should focus on fixing header positioning, scroll behavior, and form validation as high priority."
 
 ## frontend:
 ##   - task: "Add analytics events"
