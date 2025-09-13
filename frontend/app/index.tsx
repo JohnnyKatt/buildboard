@@ -73,7 +73,7 @@ function useUTM() {
   return params;
 }
 
-function Header({ onNav, navReady, onTop, isMobileSmall, onOpenMenu }: { onNav: (id: keyof typeof SECTION_IDS) => void; navReady: boolean; onTop: () => void; isMobileSmall: boolean; onOpenMenu: () => void; }) {
+function Header({ goToSection, onTop, isMobileSmall, onOpenMenu }: { goToSection: (id: keyof typeof SECTION_IDS) => void; onTop: () => void; isMobileSmall: boolean; onOpenMenu: () => void; }) {
   if (isMobileSmall) {
     return (
       <View style={styles.headerContainer}>
@@ -89,7 +89,7 @@ function Header({ onNav, navReady, onTop, isMobileSmall, onOpenMenu }: { onNav: 
             >
               <Text style={styles.hamburgerText}>≡</Text>
             </Pressable>
-            <Pressable onPress={() => onNav('Signup')} style={[styles.primaryCta, styles.headerBtn]} hitSlop={8} disabled={!navReady}>
+            <Pressable onPress={() => goToSection('Signup')} style={[styles.primaryCta, styles.headerBtn]} hitSlop={8}>
               <Text style={styles.primaryCtaText}>Join Beta</Text>
             </Pressable>
           </View>
@@ -104,23 +104,23 @@ function Header({ onNav, navReady, onTop, isMobileSmall, onOpenMenu }: { onNav: 
           <Text style={styles.logo}>Buildboard</Text>
         </Pressable>
         <View style={styles.nav}>
-          <Pressable onPress={() => onNav('Problem')} hitSlop={8} disabled={!navReady}>
-            <Text style={[styles.navLink, !navReady && styles.navLinkDisabled]}>Why Buildboard</Text>
+          <Pressable onPress={() => goToSection('Problem')} hitSlop={8}>
+            <Text style={styles.navLink}>Why Buildboard</Text>
           </Pressable>
-          <Pressable onPress={() => onNav('Solution')} hitSlop={8} disabled={!navReady}>
-            <Text style={[styles.navLink, !navReady && styles.navLinkDisabled]}>Features</Text>
+          <Pressable onPress={() => goToSection('Solution')} hitSlop={8}>
+            <Text style={styles.navLink}>Features</Text>
           </Pressable>
-          <Pressable onPress={() => onNav('WhoFor')} hitSlop={8} disabled={!navReady}>
-            <Text style={[styles.navLink, !navReady && styles.navLinkDisabled]}>Who It’s For</Text>
+          <Pressable onPress={() => goToSection('WhoFor')} hitSlop={8}>
+            <Text style={styles.navLink}>Who It’s For</Text>
           </Pressable>
-          <Pressable onPress={() => onNav('Community')} hitSlop={8} disabled={!navReady}>
-            <Text style={[styles.navLink, !navReady && styles.navLinkDisabled]}>Community</Text>
+          <Pressable onPress={() => goToSection('Community')} hitSlop={8}>
+            <Text style={styles.navLink}>Community</Text>
           </Pressable>
-          <Pressable onPress={() => onNav('Signup')} hitSlop={8} disabled={!navReady}>
-            <Text style={[styles.navLink, !navReady && styles.navLinkDisabled]}>Join Beta</Text>
+          <Pressable onPress={() => goToSection('Signup')} hitSlop={8}>
+            <Text style={styles.navLink}>Join Beta</Text>
           </Pressable>
         </View>
-        <Pressable onPress={() => onNav('Signup')} style={styles.primaryCta} hitSlop={8} disabled={!navReady}>
+        <Pressable onPress={() => goToSection('Signup')} style={styles.primaryCta} hitSlop={8}>
           <Text style={styles.primaryCtaText}>Join the Beta Waitlist</Text>
         </Pressable>
       </View>
@@ -139,10 +139,7 @@ export default function Index() {
   const isMobile = width < 768;
   const isMobileSmall = width <= 390;
 
-  const targetIds: (keyof typeof SECTION_IDS)[] = ['Problem', 'Solution', 'WhoFor', 'Community', 'Signup'];
-  const navReady = Platform.OS === 'web' ? true : targetIds.every((id) => sectionYs[id] != null);
-
-  const { control, handleSubmit, reset, formState, setValue, trigger, formState: { errors, isValid } } = useForm<WaitlistForm>({
+  const { control, handleSubmit, reset, setValue, trigger, formState: { errors, isValid } } = useForm<WaitlistForm>({
     defaultValues: { name: '', email: '', role: undefined, hp: '' },
     mode: 'onTouched',
     reValidateMode: 'onChange',
@@ -167,28 +164,53 @@ export default function Index() {
     };
   }, []);
 
+  const pendingScrollId = useRef<keyof typeof SECTION_IDS | null>(null);
+  const lastTapRef = useRef<number>(0);
+
   const onLayoutSection = (id: string, y: number) => {
-    setSectionYs((prev) => ({ ...prev, [id]: y }));
+    setSectionYs((prev) => {
+      const next = { ...prev, [id]: y } as Record<string, number>;
+      // If a scroll was queued for this id, execute now
+      if (pendingScrollId.current && pendingScrollId.current === (id as any)) {
+        // defer one tick for layout settle
+        setTimeout(() => goToSection(pendingScrollId.current as any), 0);
+        pendingScrollId.current = null;
+      }
+      return next;
+    });
   };
 
-  const onNav = (id: keyof typeof SECTION_IDS) => {
+  const focusSignup = () => {
+    if (Platform.OS === 'web') {
+      setTimeout(() => {
+        nameRef.current?.focus();
+      }, 300);
+    }
+  };
+
+  const goToSection = (id: keyof typeof SECTION_IDS) => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 200) return; // throttle taps
+    lastTapRef.current = now;
+
     if (Platform.OS === 'web') {
       const el = document.getElementById(id);
       if (el) {
-        const top = (el as any).getBoundingClientRect().top + window.scrollY - 88;
-        window.scrollTo({ top, behavior: 'smooth' });
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (id === 'Signup') focusSignup();
+      } else {
+        // queue focus if needed
+        if (id === 'Signup') focusSignup();
       }
       return;
     }
     const y = sectionYs[id];
     if (y == null) {
-      setTimeout(() => {
-        const y2 = sectionYs[id];
-        if (y2 != null) scrollRef.current?.scrollTo({ y: Math.max(0, y2 - 88), animated: true });
-      }, 250);
+      pendingScrollId.current = id; // queue scroll for when measurement is ready
       return;
     }
     scrollRef.current?.scrollTo({ y: Math.max(0, y - 88), animated: true });
+    if (id === 'Signup') focusSignup();
   };
 
   const onTop = () => {
@@ -200,9 +222,9 @@ export default function Index() {
   };
 
   const [menuVisible, setMenuVisible] = useState(false);
+  const [menuInteractive, setMenuInteractive] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [thankYou, setThankYou] = useState(false);
   const [successModal, setSuccessModal] = useState(false);
 
   const showToast = (msg: string) => {
@@ -234,7 +256,6 @@ export default function Index() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         return;
       }
-      setThankYou(true);
       setSuccessModal(true);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       trackWaitlistSubmit({
@@ -257,7 +278,7 @@ export default function Index() {
   const onPressJoin = async () => {
     const ok = await trigger();
     if (!ok) {
-      onNav('Signup');
+      goToSection('Signup');
       if (errors?.name) {
         nameRef.current?.focus();
       } else if (errors?.email) {
@@ -297,10 +318,24 @@ export default function Index() {
   const heroTitleSize = isMobile ? 36 : 58;
   const h2Size = isMobile ? 26 : 34;
 
+  const closeMenu = () => {
+    setMenuInteractive(false);
+    // Let fade animation finish before unmount
+    setTimeout(() => {
+      setMenuVisible(false);
+      setMenuInteractive(true);
+    }, 200);
+  };
+
+  const onMenuItem = (id: keyof typeof SECTION_IDS) => {
+    closeMenu();
+    goToSection(id);
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-        <Header onNav={onNav} navReady={navReady} onTop={onTop} isMobileSmall={isMobileSmall} onOpenMenu={() => setMenuVisible(true)} />
+        <Header goToSection={goToSection} onTop={onTop} isMobileSmall={isMobileSmall} onOpenMenu={() => setMenuVisible(true)} />
 
         {/* Toast */}
         {toast ? (
@@ -333,14 +368,13 @@ export default function Index() {
                     Document your build. Tag every part. Connect with shops and brands.
                   </Text>
                   <View style={[styles.row, { flexWrap: 'wrap', gap: 12, marginTop: isMobile ? 8 : 8, flexDirection: isMobile ? 'column' : 'row' }]}>
-                    <Pressable onPress={() => onNav('Signup')} style={[styles.primaryCtaLg, isMobile && { width: '100%' }]} accessibilityLabel="Join the Beta Waitlist">
+                    <Pressable onPress={() => goToSection('Signup')} style={[styles.primaryCtaLg, isMobile && { width: '100%' }]} accessibilityLabel="Join the Beta Waitlist">
                       <Text style={styles.primaryCtaText}>Join the Beta Waitlist</Text>
                     </Pressable>
                     <Pressable onPress={() => router.push('/refer')} style={[styles.secondaryCtaLg, isMobile && { width: '100%' }]} accessibilityLabel="Refer a Shop or Builder">
                       <Text style={styles.secondaryCtaText}>Refer a Shop or Builder</Text>
                     </Pressable>
                   </View>
-                  {/* Extra breathing room before media on mobile */}
                   {isMobile ? <View style={{ height: 16 }} /> : null}
                 </View>
                 <View style={{ flex: heroColumns ? 9 : undefined, width: '100%' }}>
@@ -351,7 +385,7 @@ export default function Index() {
               </View>
             </Animated.View>
 
-            {/* Problem (two-column on desktop) */}
+            {/* Problem */}
             <Animated.View entering={FadeIn.duration(600).delay(100)} nativeID={SECTION_IDS.Problem} onLayout={(e) => onLayoutSection(SECTION_IDS.Problem, e.nativeEvent.layout.y)} style={[styles.section, isMobile && styles.sectionMobile]}>
               <View style={{ flexDirection: heroColumns ? 'row' : 'column', gap: 16 }}>
                 <View style={{ flex: 1 }}>
@@ -370,7 +404,7 @@ export default function Index() {
               </View>
             </Animated.View>
 
-            {/* Solution (two-column on desktop) */}
+            {/* Solution */}
             <Animated.View entering={FadeInRight.duration(600).delay(150)} nativeID={SECTION_IDS.Solution} onLayout={(e) => onLayoutSection(SECTION_IDS.Solution, e.nativeEvent.layout.y)} style={[styles.section, isMobile && styles.sectionMobile]}>
               <View style={{ flexDirection: heroColumns ? 'row' : 'column', gap: 16 }}>
                 <View style={{ flex: 1 }}>
@@ -444,8 +478,7 @@ export default function Index() {
             </Animated.View>
 
             {/* Signup */}
-            <Animated.View entering={FadeIn.duration(600).delay(350)} nativeID={SECTION_IDS.Signup} onLayout={(e) => onLayoutSection(SECTION_IDS.Signup, e.nativeEvent.layout.y)} style={[styles.section, isMobile && styles.sectionMobile]}
-            >
+            <Animated.View entering={FadeIn.duration(600).delay(350)} nativeID={SECTION_IDS.Signup} onLayout={(e) => onLayoutSection(SECTION_IDS.Signup, e.nativeEvent.layout.y)} style={[styles.section, isMobile && styles.sectionMobile]}>
               <Text style={[styles.h2, { fontSize: h2Size, marginBottom: isMobile ? 8 : 8 }]}>Be first to the line.</Text>
               <Text style={[styles.subhead, { marginBottom: isMobile ? 12 : 12 }]}>Join the beta waitlist and help shape the future of car culture.</Text>
 
@@ -556,12 +589,12 @@ export default function Index() {
         </ScrollView>
 
         {/* Mobile Menu Sheet */}
-        <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={() => setMenuVisible(false)}>
-          <Pressable style={styles.menuBackdrop} accessibilityLabel="Close menu" onPress={() => setMenuVisible(false)} />
+        <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={closeMenu}>
+          <Pressable style={[styles.menuBackdrop, { pointerEvents: menuInteractive ? 'auto' : 'none' }]} accessibilityLabel="Close menu" onPress={closeMenu} />
           <View style={styles.menuSheet}>
             <Text style={styles.menuTitle}>Menu</Text>
             {(['Problem','Solution','WhoFor','Community','Signup'] as (keyof typeof SECTION_IDS)[]).map((id) => (
-              <Pressable key={id} onPress={() => { setMenuVisible(false); onNav(id); }} style={styles.menuItem} accessibilityLabel={`Go to ${id}`}>
+              <Pressable key={id} onPress={() => onMenuItem(id)} style={styles.menuItem} accessibilityLabel={`Go to ${id}`}>
                 <Text style={styles.menuItemText}>{id === 'WhoFor' ? 'Who It’s For' : id === 'Signup' ? 'Join Beta' : id}</Text>
               </Pressable>
             ))}
@@ -655,7 +688,6 @@ const styles = StyleSheet.create({
   logo: { color: '#fff', fontSize: 20, fontWeight: '600' },
   nav: { flexDirection: 'row', gap: 16, flexWrap: 'wrap' },
   navLink: { color: '#fff', paddingVertical: 8, paddingHorizontal: 4 },
-  navLinkDisabled: { color: '#666' },
   primaryCta: { backgroundColor: '#fff', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 8, minHeight: 44, justifyContent: 'center' },
   headerBtn: { paddingVertical: 12, paddingHorizontal: 16 },
   primaryCtaLg: { backgroundColor: '#fff', paddingVertical: 16, paddingHorizontal: 18, borderRadius: 8, minHeight: 48, justifyContent: 'center' },
