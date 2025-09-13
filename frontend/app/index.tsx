@@ -18,6 +18,8 @@ import * as LinkingExpo from 'expo-linking';
 import { useForm, Controller } from 'react-hook-form';
 import { router } from 'expo-router';
 import { trackWaitlistSubmit, trackOutboundInstagram } from '../src/utils/analytics';
+import * as Haptics from 'expo-haptics';
+import Animated, { FadeInUp, FadeIn, FadeInRight } from 'react-native-reanimated';
 
 const BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
@@ -127,7 +129,7 @@ export default function Index() {
       setWidth(Dimensions.get('window').width);
       setSectionYs({});
       setTimeout(() => {
-        // Allow re-layout before enabling nav again
+        // allow re-layout
       }, 250);
     });
     return () => {
@@ -151,7 +153,6 @@ export default function Index() {
     }
     const y = sectionYs[id];
     if (y == null) {
-      // quick retry after short delay
       setTimeout(() => {
         const y2 = sectionYs[id];
         if (y2 != null) scrollRef.current?.scrollTo({ y: Math.max(0, y2 - 88), animated: true });
@@ -181,7 +182,6 @@ export default function Index() {
   const submitWaitlist = async (values: WaitlistForm) => {
     setSubmitError(null);
     if ((values.hp || '').trim().length > 0) {
-      // Honeypot filled: silently drop
       return;
     }
     setSubmitting(true);
@@ -206,9 +206,11 @@ export default function Index() {
           if (err?.detail) msg = typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail);
         } catch {}
         setSubmitError(msg);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         return;
       }
       setThankYou(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       trackWaitlistSubmit({
         role: values.role,
         utm_source: utm.utm_source || null,
@@ -219,6 +221,7 @@ export default function Index() {
     } catch (e) {
       console.error(e);
       setSubmitError('Couldn’t submit right now. Please try again.');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setSubmitting(false);
     }
@@ -241,8 +244,10 @@ export default function Index() {
         }),
       });
       trackWaitlistSubmit({ role: 'Subscriber', utm_source: utm.utm_source || null, utm_campaign: utm.utm_campaign || null, utm_medium: utm.utm_medium || null });
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } catch (e) {
       console.error(e);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
 
@@ -258,7 +263,8 @@ export default function Index() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Hero */}
-          <View
+          <Animated.View
+            entering={FadeInUp.duration(500).delay(50)}
             nativeID={SECTION_IDS.Hero}
             onLayout={(e) => onLayoutSection(SECTION_IDS.Hero, e.nativeEvent.layout.y)}
             style={styles.section}
@@ -278,20 +284,20 @@ export default function Index() {
             <View style={styles.heroMedia}>
               <Text style={styles.mediaText}>Hero image / looping video placeholder</Text>
             </View>
-          </View>
+          </Animated.View>
 
           {/* Problem */}
-          <View nativeID={SECTION_IDS.Problem} onLayout={(e) => onLayoutSection(SECTION_IDS.Problem, e.nativeEvent.layout.y)} style={styles.section}>
+          <Animated.View entering={FadeIn.duration(600).delay(100)} nativeID={SECTION_IDS.Problem} onLayout={(e) => onLayoutSection(SECTION_IDS.Problem, e.nativeEvent.layout.y)} style={styles.section}>
             <Text style={styles.h2}>Car culture is scattered. Buildboard organizes it.</Text>
             <View style={styles.bullets}>
               <Text style={styles.bullet}>• Finding parts from a build = endless scrolling.</Text>
               <Text style={styles.bullet}>• Builders/shops get attention, not tools to grow.</Text>
               <Text style={styles.bullet}>• Brands can’t see where parts end up (no attribution).</Text>
             </View>
-          </View>
+          </Animated.View>
 
           {/* Solution */}
-          <View nativeID={SECTION_IDS.Solution} onLayout={(e) => onLayoutSection(SECTION_IDS.Solution, e.nativeEvent.layout.y)} style={styles.section}>
+          <Animated.View entering={FadeInRight.duration(600).delay(150)} nativeID={SECTION_IDS.Solution} onLayout={(e) => onLayoutSection(SECTION_IDS.Solution, e.nativeEvent.layout.y)} style={styles.section}>
             <Text style={styles.h2}>Every build has a story. Buildboard makes it searchable, shoppable, and shareable.</Text>
             <View style={[styles.grid, isMobile ? undefined : styles.gridRow]}>
               {[
@@ -305,10 +311,10 @@ export default function Index() {
                 </View>
               ))}
             </View>
-          </View>
+          </Animated.View>
 
           {/* Product */}
-          <View nativeID={SECTION_IDS.Product} onLayout={(e) => onLayoutSection(SECTION_IDS.Product, e.nativeEvent.layout.y)} style={styles.section}>
+          <Animated.View entering={FadeIn.duration(600).delay(200)} nativeID={SECTION_IDS.Product} onLayout={(e) => onLayoutSection(SECTION_IDS.Product, e.nativeEvent.layout.y)} style={styles.section}>
             <Text style={styles.h2}>Your build. Your story. Your credit.</Text>
             <View style={styles.bullets}>
               {['Profile pages', 'Build pages', 'Tagged parts', 'Clean interface'].map((b) => (
@@ -318,10 +324,10 @@ export default function Index() {
             <View style={styles.mockup}>
               <Text style={styles.mediaText}>Product mockup placeholder</Text>
             </View>
-          </View>
+          </Animated.View>
 
           {/* Who It's For */}
-          <View nativeID={SECTION_IDS.WhoFor} onLayout={(e) => onLayoutSection(SECTION_IDS.WhoFor, e.nativeEvent.layout.y)} style={styles.section}>
+          <Animated.View entering={FadeInUp.duration(600).delay(250)} nativeID={SECTION_IDS.WhoFor} onLayout={(e) => onLayoutSection(SECTION_IDS.WhoFor, e.nativeEvent.layout.y)} style={styles.section}>
             <Text style={styles.h2}>Built for everyone in car culture.</Text>
             <View style={[styles.grid, isMobile ? undefined : styles.gridRow]}>
               {[
@@ -336,10 +342,10 @@ export default function Index() {
                 </View>
               ))}
             </View>
-          </View>
+          </Animated.View>
 
           {/* Community */}
-          <View nativeID={SECTION_IDS.Community} onLayout={(e) => onLayoutSection(SECTION_IDS.Community, e.nativeEvent.layout.y)} style={styles.section}>
+          <Animated.View entering={FadeInRight.duration(600).delay(300)} nativeID={SECTION_IDS.Community} onLayout={(e) => onLayoutSection(SECTION_IDS.Community, e.nativeEvent.layout.y)} style={styles.section}>
             <Text style={styles.h2}>Built by the community, for the community.</Text>
             <View style={[styles.grid, isMobile ? undefined : styles.gridRow]}>
               {[
@@ -352,10 +358,10 @@ export default function Index() {
                 </View>
               ))}
             </View>
-          </View>
+          </Animated.View>
 
           {/* Signup */}
-          <View nativeID={SECTION_IDS.Signup} onLayout={(e) => onLayoutSection(SECTION_IDS.Signup, e.nativeEvent.layout.y)} style={styles.section}>
+          <Animated.View entering={FadeIn.duration(600).delay(350)} nativeID={SECTION_IDS.Signup} onLayout={(e) => onLayoutSection(SECTION_IDS.Signup, e.nativeEvent.layout.y)} style={styles.section}>
             <Text style={styles.h2}>Be first to the line.</Text>
             <Text style={styles.subhead}>Join the beta waitlist and help shape the future of car culture.</Text>
 
@@ -445,10 +451,10 @@ export default function Index() {
                 <Text style={styles.privacy}>By joining, you agree to occasional updates. Unsubscribe anytime.</Text>
               </View>
             )}
-          </View>
+          </Animated.View>
 
           {/* Footer */}
-          <View nativeID={SECTION_IDS.Footer} onLayout={(e) => onLayoutSection(SECTION_IDS.Footer, e.nativeEvent.layout.y)} style={[styles.section, styles.footer]}>
+          <Animated.View entering={FadeInUp.duration(600).delay(400)} nativeID={SECTION_IDS.Footer} onLayout={(e) => onLayoutSection(SECTION_IDS.Footer, e.nativeEvent.layout.y)} style={[styles.section, styles.footer]}>
             <Text style={styles.footerTagline}>Every car has a story. Every part has a source. Every builder gets credit.</Text>
             <View style={[styles.footerRow, { flexDirection: isMobile ? 'column' : 'row' }]}>
               <View style={{ flex: 1 }}>
@@ -468,7 +474,7 @@ export default function Index() {
               </View>
             </View>
             <Text style={styles.copy}>© Buildboard 2025</Text>
-          </View>
+          </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -518,7 +524,7 @@ const styles = StyleSheet.create({
   primaryCtaLg: { backgroundColor: '#fff', paddingVertical: 16, paddingHorizontal: 18, borderRadius: 10, minHeight: 48, justifyContent: 'center' },
   primaryCtaText: { color: '#000', fontWeight: '700' },
   secondaryCtaLg: { borderWidth: 1, borderColor: '#fff', paddingVertical: 16, paddingHorizontal: 18, borderRadius: 10, minHeight: 48, justifyContent: 'center' },
-  secondaryCtaText: { color: '#fff', fontWeight: '600' },
+  secondaryCtaText: { color: '#fff' },
 
   section: { paddingHorizontal: 16, paddingVertical: 32, gap: 16 },
   row: { flexDirection: 'row', alignItems: 'center' },
