@@ -14,13 +14,14 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import * as LinkingExpo from 'expo-linking';
 import { router } from 'expo-router';
+import { trackReferralSubmit } from '../src/utils/analytics';
 
 const BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
 type ReferralForm = {
   referrer_name: string;
   referrer_email: string;
-  referral_type: 'Shop' | 'Builder';
+  referral_type: 'Shop' | 'Builder' | undefined;
   referral_name: string;
   referral_contact?: string;
   notes?: string;
@@ -62,7 +63,7 @@ export default function Refer() {
     defaultValues: {
       referrer_name: '',
       referrer_email: '',
-      referral_type: undefined as any,
+      referral_type: undefined,
       referral_name: '',
       referral_contact: '',
       notes: '',
@@ -93,6 +94,8 @@ export default function Refer() {
       });
       if (!res.ok) throw new Error('Failed');
       setThanks(true);
+      // analytics
+      trackReferralSubmit({ referral_type: values.referral_type, utm_source: utm.utm_source || null, utm_campaign: utm.utm_campaign || null, utm_medium: utm.utm_medium || null });
       reset();
     } catch (e) {
       console.error(e);
@@ -142,6 +145,7 @@ export default function Refer() {
                   <TextInput value={value} onChangeText={onChange} placeholder="you@example.com" placeholderTextColor="#666" style={styles.input} autoCapitalize="none" keyboardType="email-address" />
                 )}
               />
+              <Text style={styles.smallNote}>No spam. We’ll only email about the beta.</Text>
               {formState.errors.referrer_email ? <Text style={styles.error}>Valid email required.</Text> : null}
 
               <Text style={styles.label}>Referral Type</Text>
@@ -185,7 +189,7 @@ export default function Refer() {
               <Pressable onPress={handleSubmit(submit)} style={[styles.primaryCta, { marginTop: 16 }]} disabled={submitting}>
                 {submitting ? <ActivityIndicator color="#000" /> : <Text style={styles.primaryCtaText}>Submit</Text>}
               </Pressable>
-              <Text style={styles.privacy}>By joining, you agree to receive occasional updates. Unsubscribe anytime.</Text>
+              <Text style={styles.privacy}>By joining, you agree to occasional updates. Unsubscribe anytime.</Text>
             </View>
           )}
         </ScrollView>
@@ -206,6 +210,7 @@ const styles = StyleSheet.create({
   selectOptionText: { color: '#fff' },
   primaryCta: { backgroundColor: '#fff', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 8, alignSelf: 'flex-start' },
   primaryCtaText: { color: '#000', fontWeight: '700' },
+  smallNote: { color: '#777', marginTop: 4 },
   error: { color: '#ff6b6b' },
   privacy: { color: '#777', marginTop: 8 },
   thanksBox: { borderWidth: 1, borderColor: '#333', padding: 16, borderRadius: 12, gap: 12 },

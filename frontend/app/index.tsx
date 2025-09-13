@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View,
@@ -14,10 +14,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
-import { useEffect } from 'react';
 import * as LinkingExpo from 'expo-linking';
 import { useForm, Controller } from 'react-hook-form';
 import { router } from 'expo-router';
+import { trackWaitlistSubmit, trackOutboundInstagram } from '../src/utils/analytics';
 
 const BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
@@ -35,7 +35,7 @@ const SECTION_IDS = {
 type WaitlistForm = {
   name: string;
   email: string;
-  role: 'Enthusiast' | 'Builder' | 'Shop' | 'Brand' | 'Subscriber';
+  role: 'Enthusiast' | 'Builder' | 'Shop' | 'Brand' | 'Subscriber' | undefined;
   hp?: string; // honeypot
 };
 
@@ -61,9 +61,10 @@ function useUTM() {
         utm_source: sp.get('utm_source') || undefined,
         utm_campaign: sp.get('utm_campaign') || undefined,
         utm_medium: sp.get('utm_medium') || undefined,
-      };
+        prefill_role: sp.get('role') || undefined,
+      } as const;
     }
-    return { source_url: url, utm_source: undefined, utm_campaign: undefined, utm_medium: undefined };
+    return { source_url: url, utm_source: undefined, utm_campaign: undefined, utm_medium: undefined, prefill_role: undefined } as const;
   }, [url]);
 
   return params;
@@ -80,6 +81,9 @@ function Header({ onNav }: { onNav: (id: keyof typeof SECTION_IDS) => void }) {
           </Pressable>
           <Pressable onPress={() => onNav('Solution')} hitSlop={8}>
             <Text style={styles.navLink}>Features</Text>
+          </Pressable>
+          <Pressable onPress={() => onNav('WhoFor')} hitSlop={8}>
+            <Text style={styles.navLink}>Who It’s For</Text>
           </Pressable>
           <Pressable onPress={() => onNav('Community')} hitSlop={8}>
             <Text style={styles.navLink}>Community</Text>
@@ -102,6 +106,17 @@ export default function Index() {
   const [width, setWidth] = useState(Dimensions.get('window').width);
   const utm = useUTM();
 
+  const { control, handleSubmit, reset, formState, setValue, watch } = useForm<WaitlistForm>({
+    defaultValues: { name: '', email: '', role: undefined, hp: '' },
+    mode: 'onTouched',
+  });
+
+  useEffect(() => {
+    const r = (utm.prefill_role || '').toLowerCase();
+    const map: Record<string, any> = { enthusiast: 'Enthusiast', builder: 'Builder', shop: 'Shop', brand: 'Brand' };
+    if (map[r]) setValue('role', map[r]);
+  }, [utm.prefill_role, setValue]);
+
   const onLayoutSection = (id: string, y: number) => {
     setSectionYs((prev) => ({ ...prev, [id]: y }));
   };
@@ -114,6 +129,7 @@ export default function Index() {
   };
 
   const openInstagram = async () => {
+    trackOutboundInstagram();
     const url = 'https://instagram.com/thebuildboard';
     if (Platform.OS === 'web') {
       window.open(url, '_blank');
@@ -122,10 +138,6 @@ export default function Index() {
     }
   };
 
-  const { control, handleSubmit, reset, formState } = useForm<WaitlistForm>({
-    defaultValues: { name: '', email: '', role: undefined as any, hp: '' },
-    mode: 'onTouched',
-  });
   const [submitting, setSubmitting] = useState(false);
   const [thankYou, setThankYou] = useState(false);
   const isMobile = width < 768;
@@ -144,11 +156,21 @@ export default function Index() {
           name: values.name.trim(),
           email: values.email.trim(),
           role: values.role,
-          ...utm,
+          source_url: utm.source_url,
+          utm_source: utm.utm_source,
+          utm_campaign: utm.utm_campaign,
+          utm_medium: utm.utm_medium,
         }),
       });
       if (!res.ok) throw new Error('Failed to join waitlist');
       setThankYou(true);
+      // analytics
+      trackWaitlistSubmit({
+        role: values.role,
+        utm_source: utm.utm_source || null,
+        utm_campaign: utm.utm_campaign || null,
+        utm_medium: utm.utm_medium || null,
+      });
       reset();
     } catch (e) {
       console.error(e);
@@ -167,9 +189,14 @@ export default function Index() {
           name: email,
           email,
           role: 'Subscriber',
-          ...utm,
+          source_url: utm.source_url,
+          utm_source: utm.utm_source,
+          utm_campaign: utm.utm_campaign,
+          utm_medium: utm.utm_medium,
         }),
       });
+      // analytics (treat as waitlist submit with role Subscriber)
+      trackWaitlistSubmit({ role: 'Subscriber', utm_source: utm.utm_source || null, utm_campaign: utm.utm_campaign || null, utm_medium: utm.utm_medium || null });
     } catch (e) {
       console.error(e);
     }
@@ -193,7 +220,7 @@ export default function Index() {
           >
             <Text style={styles.heroTitle}>The social marketplace for automotive builds.</Text>
             <Text style={styles.heroSubtitle}>
-              Where every build is documented, shared, and connected to the parts and shops that made it.
+              Document your build. Tag every part. Connect with shops and brands.
             </Text>
             <View style={[styles.row, { flexWrap: 'wrap', gap: 12 }]}>
               <Pressable onPress={() => onNav('Signup')} style={styles.primaryCtaLg}>
@@ -212,9 +239,9 @@ export default function Index() {
           <View onLayout={(e) => onLayoutSection(SECTION_IDS.Problem, e.nativeEvent.layout.y)} style={styles.section}>
             <Text style={styles.h2}>Car culture is scattered. Buildboard organizes it.</Text>
             <View style={styles.bullets}>
-              <Text style={styles.bullet}>• Instagram and forums are scattered — builds get lost.</Text>
-              <Text style={styles.bullet}>• Shops and builders rarely get attribution or monetization.</Text>
-              <Text style={styles.bullet}>• Brands lack clear attribution from real-world installs.</Text>
+              <Text style={styles.bullet}>• Finding parts from a build = endless scrolling.</Text>
+              <Text style={styles.bullet}>• Builders/shops get attention, not tools to grow.</Text>
+              <Text style={styles.bullet}>• Brands can’t see where parts end up (no attribution).</Text>
             </View>
           </View>
 
@@ -342,6 +369,7 @@ export default function Index() {
                     />
                   )}
                 />
+                <Text style={styles.smallNote}>No spam. We’ll only email about the beta.</Text>
                 {formState.errors.email ? <Text style={styles.error}>Valid email required.</Text> : null}
 
                 <Text style={styles.label}>Role</Text>
@@ -368,7 +396,7 @@ export default function Index() {
                 <Pressable onPress={handleSubmit(submitWaitlist)} style={[styles.primaryCta, { marginTop: 16 }]} disabled={submitting}>
                   {submitting ? <ActivityIndicator color="#000" /> : <Text style={styles.primaryCtaText}>Join the Beta Waitlist</Text>}
                 </Pressable>
-                <Text style={styles.privacy}>By joining, you agree to receive occasional updates. Unsubscribe anytime.</Text>
+                <Text style={styles.privacy}>By joining, you agree to occasional updates. Unsubscribe anytime.</Text>
               </View>
             )}
           </View>
@@ -437,7 +465,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   logo: { color: '#fff', fontSize: 20, fontWeight: '600' },
-  nav: { flexDirection: 'row', gap: 16 },
+  nav: { flexDirection: 'row', gap: 16, flexWrap: 'wrap' },
   navLink: { color: '#fff' },
   primaryCta: { backgroundColor: '#fff', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 8 },
   primaryCtaLg: { backgroundColor: '#fff', paddingVertical: 14, paddingHorizontal: 18, borderRadius: 10 },
@@ -473,6 +501,7 @@ const styles = StyleSheet.create({
   selectOption: { paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: '#333', borderRadius: 8 },
   selectOptionActive: { backgroundColor: '#fff' },
   selectOptionText: { color: '#fff' },
+  smallNote: { color: '#777', marginTop: 4 },
   error: { color: '#ff6b6b' },
   privacy: { color: '#777', marginTop: 8 },
   thanksBox: { borderWidth: 1, borderColor: '#333', padding: 16, borderRadius: 12, gap: 12 },
