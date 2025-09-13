@@ -102,6 +102,84 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 ## frontend:
+##   - task: "Sticky header & nav scroll"
+##     implemented: true
+##     working: false
+##     file: "/app/frontend/app/index.tsx"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##     status_history:
+##         -working: true
+##         -agent: "main"
+##         -comment: "Header absolute at top, nav links smooth scroll to sections, CTA scrolls to Signup"
+##   - task: "Signup form validation + honeypot + submit"
+##     implemented: true
+##     working: false
+##     file: "/app/frontend/app/index.tsx"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##     status_history:
+##         -working: true
+##         -agent: "main"
+##         -comment: "Name/Email/Role validation; honeypot; thank-you; UTM sent"
+##   - task: "Footer email capture"
+##     implemented: true
+##     working: false
+##     file: "/app/frontend/app/index.tsx"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##     status_history:
+##         -working: true
+##         -agent: "main"
+##         -comment: "Valid email required; writes to Waitlist with role Subscriber"
+##   - task: "Refer form validation + honeypot + submit"
+##     implemented: true
+##     working: false
+##     file: "/app/frontend/app/refer.tsx"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##     status_history:
+##         -working: true
+##         -agent: "main"
+##         -comment: "Required fields; optional fields; thank-you; UTM sent; Back to Home"
+##   - task: "Responsive layout (<768px)"
+##     implemented: true
+##     working: false
+##     file: "/app/frontend/app/index.tsx"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##     status_history:
+##         -working: true
+##         -agent: "main"
+##         -comment: "Columns stack, paddings preserved, touch targets sized"
+## metadata:
+##   created_by: "main_agent"
+##   version: "1.0"
+##   test_sequence: 2
+##   run_ui: true
+##
+## test_plan:
+##   current_focus:
+##     - "Sticky header & nav scroll"
+##     - "Signup form validation + honeypot + submit"
+##     - "Refer form validation + honeypot + submit"
+##     - "Footer email capture"
+##     - "Responsive layout (<768px)"
+##   stuck_tasks:
+##     - "None"
+##   test_all: true
+##   test_priority: "high_first"
+##
+## agent_communication:
+##     -agent: "main"
+##     -message: "Run mobile viewport tests per user checklist. Also verify network to /api endpoints for success, and that no request occurs when honeypot filled."
+
+## frontend:
 ##   - task: "Add analytics events"
 ##     implemented: true
 ##     working: NA
