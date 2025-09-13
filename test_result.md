@@ -106,57 +106,72 @@
 ##     implemented: true
 ##     working: false
 ##     file: "/app/frontend/app/index.tsx"
-##     stuck_count: 0
+##     stuck_count: 1
 ##     priority: "high"
-##     needs_retesting: true
+##     needs_retesting: false
 ##     status_history:
 ##         -working: true
 ##         -agent: "main"
 ##         -comment: "Header absolute at top, nav links smooth scroll to sections, CTA scrolls to Signup"
+##         -working: false
+##         -agent: "testing"
+##         -comment: "❌ TESTED: Header is visible and sticky (remains visible after scroll) but smooth scroll navigation is not working. Header CTA and nav links do not scroll to target sections. Scroll position remains at 0 when clicking navigation elements."
 ##   - task: "Signup form validation + honeypot + submit"
 ##     implemented: true
 ##     working: false
 ##     file: "/app/frontend/app/index.tsx"
-##     stuck_count: 0
+##     stuck_count: 1
 ##     priority: "high"
-##     needs_retesting: true
+##     needs_retesting: false
 ##     status_history:
 ##         -working: true
 ##         -agent: "main"
 ##         -comment: "Name/Email/Role validation; honeypot; thank-you; UTM sent"
+##         -working: false
+##         -agent: "testing"
+##         -comment: "❌ TESTED: Form validation is not triggering on empty form submission. No validation errors shown for required fields (Name, Email, Role). Form submission with valid data does not show thank you message or make API requests. Honeypot field present but form submission behavior needs investigation."
 ##   - task: "Footer email capture"
 ##     implemented: true
-##     working: false
+##     working: true
 ##     file: "/app/frontend/app/index.tsx"
 ##     stuck_count: 0
 ##     priority: "high"
-##     needs_retesting: true
+##     needs_retesting: false
 ##     status_history:
 ##         -working: true
 ##         -agent: "main"
 ##         -comment: "Valid email required; writes to Waitlist with role Subscriber"
+##         -working: true
+##         -agent: "testing"
+##         -comment: "✅ TESTED: Footer email capture working correctly. Invalid emails are rejected (no API request), valid emails trigger POST /api/waitlist with role=Subscriber. Analytics event 'waitlist_submit {role: Subscriber}' fires correctly."
 ##   - task: "Refer form validation + honeypot + submit"
 ##     implemented: true
-##     working: false
+##     working: NA
 ##     file: "/app/frontend/app/refer.tsx"
 ##     stuck_count: 0
 ##     priority: "high"
-##     needs_retesting: true
+##     needs_retesting: false
 ##     status_history:
 ##         -working: true
 ##         -agent: "main"
 ##         -comment: "Required fields; optional fields; thank-you; UTM sent; Back to Home"
+##         -working: NA
+##         -agent: "testing"
+##         -comment: "❌ TESTING INCOMPLETE: Navigation to /refer page works correctly, but testing was interrupted by script error. Form elements are present and accessible. Requires additional testing to verify validation, honeypot, and submission functionality."
 ##   - task: "Responsive layout (<768px)"
 ##     implemented: true
-##     working: false
+##     working: true
 ##     file: "/app/frontend/app/index.tsx"
 ##     stuck_count: 0
 ##     priority: "high"
-##     needs_retesting: true
+##     needs_retesting: false
 ##     status_history:
 ##         -working: true
 ##         -agent: "main"
 ##         -comment: "Columns stack, paddings preserved, touch targets sized"
+##         -working: true
+##         -agent: "testing"
+##         -comment: "✅ TESTED: Responsive layout working correctly at mobile viewports (360px, 768px, 390px). Header and hero elements remain visible and properly positioned across different screen sizes. Mobile-first design principles implemented correctly."
 ## metadata:
 ##   created_by: "main_agent"
 ##   version: "1.0"
@@ -178,19 +193,24 @@
 ## agent_communication:
 ##     -agent: "main"
 ##     -message: "Run mobile viewport tests per user checklist. Also verify network to /api endpoints for success, and that no request occurs when honeypot filled."
+##     -agent: "testing"
+##     -message: "✅ MOBILE TESTING COMPLETED: Tested all features on iPhone 14 viewport (390x844). WORKING: Footer email capture, responsive layout, analytics events, sticky header visibility. ISSUES FOUND: Smooth scroll navigation not working (header CTA and nav links don't scroll to sections), signup form validation not triggering, form submissions not working properly. Instagram links and refer form need additional testing. Backend APIs are confirmed working from previous tests."
 
 ## frontend:
 ##   - task: "Add analytics events"
 ##     implemented: true
-##     working: NA
+##     working: true
 ##     file: "/app/frontend/src/utils/analytics.ts"
 ##     stuck_count: 0
 ##     priority: "medium"
-##     needs_retesting: true
+##     needs_retesting: false
 ##     status_history:
 ##         -working: true
 ##         -agent: "main"
 ##         -comment: "Added GA4 measurement protocol events for waitlist_submit, referral_submit, outbound_click_instagram"
+##         -working: true
+##         -agent: "testing"
+##         -comment: "✅ TESTED: Analytics events working correctly. Console shows '[analytics noop] waitlist_submit {role: Subscriber}' indicating proper event firing. GA4 measurement protocol configured correctly but shows 'noop' due to missing EXPO_PUBLIC_GA4_MEASUREMENT_ID and EXPO_PUBLIC_GA4_API_SECRET environment variables."
 
 ## user_problem_statement: "Build a responsive single-page landing with waitlist + referrals and backend storage"
 ## backend:
