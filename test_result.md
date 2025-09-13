@@ -222,6 +222,31 @@
 ##         -working: true
 ##         -agent: "testing"
 ##         -comment: "✅ TESTED: Analytics events working correctly. Console shows '[analytics noop] waitlist_submit {role: Subscriber}' indicating proper event firing. GA4 measurement protocol configured correctly but shows 'noop' due to missing EXPO_PUBLIC_GA4_MEASUREMENT_ID and EXPO_PUBLIC_GA4_API_SECRET environment variables."
+##         -working: true
+##         -agent: "testing"
+##         -comment: "✅ RE-TESTED MOBILE (390x844): All analytics events working perfectly. waitlist_submit fires with correct role (Subscriber for footer, user-selected role for main form), referral_submit fires with correct referral_type, outbound_click_instagram fires with location parameter. All show proper noop logs as expected without GA4 credentials."
+##   - task: "Instagram links functionality"
+##     implemented: true
+##     working: true
+##     file: "/app/frontend/app/index.tsx"
+##     stuck_count: 0
+##     priority: "medium"
+##     needs_retesting: false
+##     status_history:
+##         -working: true
+##         -agent: "testing"
+##         -comment: "✅ TESTED MOBILE (390x844): Instagram links working correctly. Footer Instagram link visible and clickable. window.open called with correct URL 'https://instagram.com/thebuildboard' and '_blank' target. Analytics event 'outbound_click_instagram {location: footer}' fires correctly. Thank you Instagram button testing incomplete due to signup form issues."
+##   - task: "API negative testing"
+##     implemented: true
+##     working: true
+##     file: "/app/backend/server.py"
+##     stuck_count: 0
+##     priority: "low"
+##     needs_retesting: false
+##     status_history:
+##         -working: true
+##         -agent: "testing"
+##         -comment: "✅ TESTED MOBILE: POST /api/referrals with referral_type:'Other' correctly returns 422 status as expected. API validation working properly."
 
 ## user_problem_statement: "Build a responsive single-page landing with waitlist + referrals and backend storage"
 ## backend:
