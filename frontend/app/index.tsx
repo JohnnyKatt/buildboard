@@ -14,6 +14,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
+import { useEffect } from 'react';
 import * as LinkingExpo from 'expo-linking';
 import { useForm, Controller } from 'react-hook-form';
 import { router } from 'expo-router';
