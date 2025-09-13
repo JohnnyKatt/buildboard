@@ -70,29 +70,29 @@ function useUTM() {
   return params;
 }
 
-function Header({ onNav }: { onNav: (id: keyof typeof SECTION_IDS) => void }) {
+function Header({ onNav, navReady }: { onNav: (id: keyof typeof SECTION_IDS) => void; navReady: boolean }) {
   return (
     <View style={styles.headerContainer}>
       <View style={styles.header}>
         <Text style={styles.logo}>Buildboard</Text>
         <View style={styles.nav}>
-          <Pressable onPress={() => onNav('Problem')} hitSlop={8}>
-            <Text style={styles.navLink}>Why Buildboard</Text>
+          <Pressable onPress={() => onNav('Problem')} hitSlop={8} disabled={!navReady}>
+            <Text style={[styles.navLink, !navReady && styles.navLinkDisabled]}>Why Buildboard</Text>
           </Pressable>
-          <Pressable onPress={() => onNav('Solution')} hitSlop={8}>
-            <Text style={styles.navLink}>Features</Text>
+          <Pressable onPress={() => onNav('Solution')} hitSlop={8} disabled={!navReady}>
+            <Text style={[styles.navLink, !navReady && styles.navLinkDisabled]}>Features</Text>
           </Pressable>
-          <Pressable onPress={() => onNav('WhoFor')} hitSlop={8}>
-            <Text style={styles.navLink}>Who It’s For</Text>
+          <Pressable onPress={() => onNav('WhoFor')} hitSlop={8} disabled={!navReady}>
+            <Text style={[styles.navLink, !navReady && styles.navLinkDisabled]}>Who It’s For</Text>
           </Pressable>
-          <Pressable onPress={() => onNav('Community')} hitSlop={8}>
-            <Text style={styles.navLink}>Community</Text>
+          <Pressable onPress={() => onNav('Community')} hitSlop={8} disabled={!navReady}>
+            <Text style={[styles.navLink, !navReady && styles.navLinkDisabled]}>Community</Text>
           </Pressable>
-          <Pressable onPress={() => onNav('Signup')} hitSlop={8}>
-            <Text style={styles.navLink}>Join Beta</Text>
+          <Pressable onPress={() => onNav('Signup')} hitSlop={8} disabled={!navReady}>
+            <Text style={[styles.navLink, !navReady && styles.navLinkDisabled]}>Join Beta</Text>
           </Pressable>
         </View>
-        <Pressable onPress={() => onNav('Signup')} style={styles.primaryCta} hitSlop={8}>
+        <Pressable onPress={() => onNav('Signup')} style={styles.primaryCta} hitSlop={8} disabled={!navReady}>
           <Text style={styles.primaryCtaText}>Join the Beta Waitlist</Text>
         </Pressable>
       </View>
@@ -106,9 +106,14 @@ export default function Index() {
   const [width, setWidth] = useState(Dimensions.get('window').width);
   const utm = useUTM();
 
-  const { control, handleSubmit, reset, formState, setValue, watch } = useForm<WaitlistForm>({
+  const targetIds: (keyof typeof SECTION_IDS)[] = ['Problem', 'Solution', 'WhoFor', 'Community', 'Signup'];
+  const navReady = Platform.OS === 'web' ? true : targetIds.every((id) => sectionYs[id] != null);
+
+  const { control, handleSubmit, reset, formState, setValue } = useForm<WaitlistForm>({
     defaultValues: { name: '', email: '', role: undefined, hp: '' },
-    mode: 'onTouched',
+    mode: 'onChange',
+    reValidateMode: 'onChange',
+    criteriaMode: 'all',
   });
 
   useEffect(() => {
@@ -117,19 +122,44 @@ export default function Index() {
     if (map[r]) setValue('role', map[r]);
   }, [utm.prefill_role, setValue]);
 
+  useEffect(() => {
+    const sub = Dimensions.addEventListener('change', () => {
+      setWidth(Dimensions.get('window').width);
+      setSectionYs({});
+      setTimeout(() => {
+        // Allow re-layout before enabling nav again
+      }, 250);
+    });
+    return () => {
+      // @ts-ignore
+      sub?.remove?.();
+    };
+  }, []);
+
   const onLayoutSection = (id: string, y: number) => {
     setSectionYs((prev) => ({ ...prev, [id]: y }));
   };
 
   const onNav = (id: keyof typeof SECTION_IDS) => {
-    const y = sectionYs[id];
-    if (y != null) {
-      scrollRef.current?.scrollTo({ y: Math.max(0, y - 88), animated: true });
+    if (Platform.OS === 'web') {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
     }
+    const y = sectionYs[id];
+    if (y == null) {
+      // quick retry after short delay
+      setTimeout(() => {
+        const y2 = sectionYs[id];
+        if (y2 != null) scrollRef.current?.scrollTo({ y: Math.max(0, y2 - 88), animated: true });
+      }, 250);
+      return;
+    }
+    scrollRef.current?.scrollTo({ y: Math.max(0, y - 88), animated: true });
   };
 
-  const openInstagram = async () => {
-    trackOutboundInstagram();
+  const openInstagram = async (location: 'header' | 'footer' | 'thankyou') => {
+    trackOutboundInstagram({ location });
     const url = 'https://instagram.com/thebuildboard';
     if (Platform.OS === 'web') {
       window.open(url, '_blank');
@@ -139,10 +169,14 @@ export default function Index() {
   };
 
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [thankYou, setThankYou] = useState(false);
   const isMobile = width < 768;
 
+  const canSubmit = formState.isValid && !submitting;
+
   const submitWaitlist = async (values: WaitlistForm) => {
+    setSubmitError(null);
     if ((values.hp || '').trim().length > 0) {
       // Honeypot filled: silently drop
       return;
@@ -162,9 +196,16 @@ export default function Index() {
           utm_medium: utm.utm_medium,
         }),
       });
-      if (!res.ok) throw new Error('Failed to join waitlist');
+      if (!res.ok) {
+        let msg = 'Couldn’t submit right now. Please try again.';
+        try {
+          const err = await res.json();
+          if (err?.detail) msg = typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail);
+        } catch {}
+        setSubmitError(msg);
+        return;
+      }
       setThankYou(true);
-      // analytics
       trackWaitlistSubmit({
         role: values.role,
         utm_source: utm.utm_source || null,
@@ -174,6 +215,7 @@ export default function Index() {
       reset();
     } catch (e) {
       console.error(e);
+      setSubmitError('Couldn’t submit right now. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -195,7 +237,6 @@ export default function Index() {
           utm_medium: utm.utm_medium,
         }),
       });
-      // analytics (treat as waitlist submit with role Subscriber)
       trackWaitlistSubmit({ role: 'Subscriber', utm_source: utm.utm_source || null, utm_campaign: utm.utm_campaign || null, utm_medium: utm.utm_medium || null });
     } catch (e) {
       console.error(e);
@@ -205,7 +246,7 @@ export default function Index() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-        <Header onNav={onNav} />
+        <Header onNav={onNav} navReady={navReady} />
         <ScrollView
           ref={scrollRef}
           style={{ flex: 1, backgroundColor: '#000' }}
@@ -215,6 +256,7 @@ export default function Index() {
         >
           {/* Hero */}
           <View
+            nativeID={SECTION_IDS.Hero}
             onLayout={(e) => onLayoutSection(SECTION_IDS.Hero, e.nativeEvent.layout.y)}
             style={styles.section}
           >
@@ -223,7 +265,7 @@ export default function Index() {
               Document your build. Tag every part. Connect with shops and brands.
             </Text>
             <View style={[styles.row, { flexWrap: 'wrap', gap: 12 }]}>
-              <Pressable onPress={() => onNav('Signup')} style={styles.primaryCtaLg}>
+              <Pressable onPress={() => onNav('Signup')} style={styles.primaryCtaLg} disabled={!navReady}>
                 <Text style={styles.primaryCtaText}>Join the Beta Waitlist</Text>
               </Pressable>
               <Pressable onPress={() => router.push('/refer')} style={styles.secondaryCtaLg}>
@@ -236,7 +278,7 @@ export default function Index() {
           </View>
 
           {/* Problem */}
-          <View onLayout={(e) => onLayoutSection(SECTION_IDS.Problem, e.nativeEvent.layout.y)} style={styles.section}>
+          <View nativeID={SECTION_IDS.Problem} onLayout={(e) => onLayoutSection(SECTION_IDS.Problem, e.nativeEvent.layout.y)} style={styles.section}>
             <Text style={styles.h2}>Car culture is scattered. Buildboard organizes it.</Text>
             <View style={styles.bullets}>
               <Text style={styles.bullet}>• Finding parts from a build = endless scrolling.</Text>
@@ -246,7 +288,7 @@ export default function Index() {
           </View>
 
           {/* Solution */}
-          <View onLayout={(e) => onLayoutSection(SECTION_IDS.Solution, e.nativeEvent.layout.y)} style={styles.section}>
+          <View nativeID={SECTION_IDS.Solution} onLayout={(e) => onLayoutSection(SECTION_IDS.Solution, e.nativeEvent.layout.y)} style={styles.section}>
             <Text style={styles.h2}>Every build has a story. Buildboard makes it searchable, shoppable, and shareable.</Text>
             <View style={[styles.grid, isMobile ? undefined : styles.gridRow]}>
               {[
@@ -263,7 +305,7 @@ export default function Index() {
           </View>
 
           {/* Product */}
-          <View onLayout={(e) => onLayoutSection(SECTION_IDS.Product, e.nativeEvent.layout.y)} style={styles.section}>
+          <View nativeID={SECTION_IDS.Product} onLayout={(e) => onLayoutSection(SECTION_IDS.Product, e.nativeEvent.layout.y)} style={styles.section}>
             <Text style={styles.h2}>Your build. Your story. Your credit.</Text>
             <View style={styles.bullets}>
               {['Profile pages', 'Build pages', 'Tagged parts', 'Clean interface'].map((b) => (
@@ -276,7 +318,7 @@ export default function Index() {
           </View>
 
           {/* Who It's For */}
-          <View onLayout={(e) => onLayoutSection(SECTION_IDS.WhoFor, e.nativeEvent.layout.y)} style={styles.section}>
+          <View nativeID={SECTION_IDS.WhoFor} onLayout={(e) => onLayoutSection(SECTION_IDS.WhoFor, e.nativeEvent.layout.y)} style={styles.section}>
             <Text style={styles.h2}>Built for everyone in car culture.</Text>
             <View style={[styles.grid, isMobile ? undefined : styles.gridRow]}>
               {[
@@ -294,7 +336,7 @@ export default function Index() {
           </View>
 
           {/* Community */}
-          <View onLayout={(e) => onLayoutSection(SECTION_IDS.Community, e.nativeEvent.layout.y)} style={styles.section}>
+          <View nativeID={SECTION_IDS.Community} onLayout={(e) => onLayoutSection(SECTION_IDS.Community, e.nativeEvent.layout.y)} style={styles.section}>
             <Text style={styles.h2}>Built by the community, for the community.</Text>
             <View style={[styles.grid, isMobile ? undefined : styles.gridRow]}>
               {[
@@ -310,14 +352,14 @@ export default function Index() {
           </View>
 
           {/* Signup */}
-          <View onLayout={(e) => onLayoutSection(SECTION_IDS.Signup, e.nativeEvent.layout.y)} style={styles.section}>
+          <View nativeID={SECTION_IDS.Signup} onLayout={(e) => onLayoutSection(SECTION_IDS.Signup, e.nativeEvent.layout.y)} style={styles.section}>
             <Text style={styles.h2}>Be first to the line.</Text>
             <Text style={styles.subhead}>Join the beta waitlist and help shape the future of car culture.</Text>
 
             {thankYou ? (
               <View style={styles.thanksBox}>
                 <Text style={styles.h3}>You’re on the list. We’ll be in touch soon. Follow along @thebuildboard.</Text>
-                <Pressable onPress={openInstagram} style={styles.primaryCta} hitSlop={8}>
+                <Pressable onPress={() => openInstagram('thankyou')} style={styles.primaryCta} hitSlop={8}>
                   <Text style={styles.primaryCtaText}>Open Instagram</Text>
                 </Pressable>
               </View>
@@ -393,16 +435,17 @@ export default function Index() {
                 />
                 {formState.errors.role ? <Text style={styles.error}>Role is required.</Text> : null}
 
-                <Pressable onPress={handleSubmit(submitWaitlist)} style={[styles.primaryCta, { marginTop: 16 }]} disabled={submitting}>
+                <Pressable onPress={handleSubmit(submitWaitlist)} style={[styles.primaryCta, { marginTop: 16, opacity: canSubmit ? 1 : 0.5 }]} disabled={!canSubmit}>
                   {submitting ? <ActivityIndicator color="#000" /> : <Text style={styles.primaryCtaText}>Join the Beta Waitlist</Text>}
                 </Pressable>
+                {submitError ? <Text style={styles.error}>{submitError}</Text> : null}
                 <Text style={styles.privacy}>By joining, you agree to occasional updates. Unsubscribe anytime.</Text>
               </View>
             )}
           </View>
 
           {/* Footer */}
-          <View onLayout={(e) => onLayoutSection(SECTION_IDS.Footer, e.nativeEvent.layout.y)} style={[styles.section, styles.footer]}>
+          <View nativeID={SECTION_IDS.Footer} onLayout={(e) => onLayoutSection(SECTION_IDS.Footer, e.nativeEvent.layout.y)} style={[styles.section, styles.footer]}>
             <Text style={styles.footerTagline}>Every car has a story. Every part has a source. Every builder gets credit.</Text>
             <View style={[styles.footerRow, { flexDirection: isMobile ? 'column' : 'row' }]}>
               <View style={{ flex: 1 }}>
@@ -416,7 +459,7 @@ export default function Index() {
                 <Pressable onPress={() => LinkingExpo.openURL('mailto:team@buildboard.app')} hitSlop={8}>
                   <Text style={styles.link}>Contact</Text>
                 </Pressable>
-                <Pressable onPress={openInstagram} hitSlop={8}>
+                <Pressable onPress={() => openInstagram('footer')} hitSlop={8}>
                   <Text style={styles.link}>Instagram @thebuildboard</Text>
                 </Pressable>
               </View>
@@ -467,6 +510,7 @@ const styles = StyleSheet.create({
   logo: { color: '#fff', fontSize: 20, fontWeight: '600' },
   nav: { flexDirection: 'row', gap: 16, flexWrap: 'wrap' },
   navLink: { color: '#fff' },
+  navLinkDisabled: { color: '#666' },
   primaryCta: { backgroundColor: '#fff', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 8 },
   primaryCtaLg: { backgroundColor: '#fff', paddingVertical: 14, paddingHorizontal: 18, borderRadius: 10 },
   primaryCtaText: { color: '#000', fontWeight: '700' },

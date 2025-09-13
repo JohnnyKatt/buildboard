@@ -7,7 +7,7 @@ const API_SECRET = process.env.EXPO_PUBLIC_GA4_API_SECRET;
 
 function getClientId() {
   try {
-    const id = Constants.deviceId || `${Math.random().toString(36).slice(2)}.${Date.now()}`;
+    const id = (Constants as any).deviceId || `${Math.random().toString(36).slice(2)}.${Date.now()}`;
     return String(id);
   } catch {
     return `${Math.random().toString(36).slice(2)}.${Date.now()}`;
@@ -58,6 +58,6 @@ export function trackReferralSubmit(params: { referral_type?: string; utm_source
   return sendGA4('referral_submit', p);
 }
 
-export function trackOutboundInstagram() {
-  return sendGA4('outbound_click_instagram');
+export function trackOutboundInstagram(params?: { location?: 'header' | 'footer' | 'thankyou' }) {
+  return sendGA4('outbound_click_instagram', params || {});
 }

@@ -69,14 +69,25 @@ export default function Refer() {
       notes: '',
       hp: '',
     },
-    mode: 'onTouched',
+    mode: 'onChange',
+    reValidateMode: 'onChange',
+    criteriaMode: 'all',
   });
   const utm = useUTM();
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [thanks, setThanks] = useState(false);
 
+  const canSubmit = formState.isValid && !submitting;
+
   const submit = async (values: ReferralForm) => {
+    setSubmitError(null);
     if ((values.hp || '').trim().length > 0) return; // honeypot
+    // Client-side referral_type guard
+    if (values.referral_type !== 'Shop' && values.referral_type !== 'Builder') {
+      setSubmitError('Please select a valid referral type.');
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetch(`${BASE_URL}/api/referrals`, {
@@ -92,13 +103,21 @@ export default function Refer() {
           notes: values.notes?.trim() || undefined,
         }),
       });
-      if (!res.ok) throw new Error('Failed');
+      if (!res.ok) {
+        let msg = 'Couldn’t submit right now. Please try again.';
+        try {
+          const err = await res.json();
+          if (err?.detail) msg = typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail);
+        } catch {}
+        setSubmitError(msg);
+        return;
+      }
       setThanks(true);
-      // analytics
       trackReferralSubmit({ referral_type: values.referral_type, utm_source: utm.utm_source || null, utm_campaign: utm.utm_campaign || null, utm_medium: utm.utm_medium || null });
       reset();
     } catch (e) {
       console.error(e);
+      setSubmitError('Couldn’t submit right now. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -186,9 +205,10 @@ export default function Refer() {
                 <TextInput value={value} onChangeText={onChange} placeholder="Anything we should know" placeholderTextColor="#666" style={[styles.input, { height: 100, textAlignVertical: 'top' }]} multiline />
               )} />
 
-              <Pressable onPress={handleSubmit(submit)} style={[styles.primaryCta, { marginTop: 16 }]} disabled={submitting}>
+              <Pressable onPress={handleSubmit(submit)} style={[styles.primaryCta, { marginTop: 16, opacity: canSubmit ? 1 : 0.5 }]} disabled={!canSubmit}>
                 {submitting ? <ActivityIndicator color="#000" /> : <Text style={styles.primaryCtaText}>Submit</Text>}
               </Pressable>
+              {submitError ? <Text style={styles.error}>{submitError}</Text> : null}
               <Text style={styles.privacy}>By joining, you agree to occasional updates. Unsubscribe anytime.</Text>
             </View>
           )}
