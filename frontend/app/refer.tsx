@@ -122,7 +122,7 @@ export default function Refer() {
             <View style={{ gap: 8 }}>
               {/* honeypot */}
               <Controller control={control} name="hp" render={({ field: { onChange, value } }) => (
-                <TextInput value={value} onChangeText={onChange} style={styles.honeypot} accessibilityElementsHidden />
+                <TextInput value={value} onChangeText={onChange} style={styles.honeypot} accessibilityElementsHidden accessibilityLabel="Do not fill" />
               )} />
 
               <Text style={styles.label}>Your Name</Text>
