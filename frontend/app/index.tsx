@@ -111,7 +111,7 @@ export default function Index() {
 
   const { control, handleSubmit, reset, formState, setValue } = useForm<WaitlistForm>({
     defaultValues: { name: '', email: '', role: undefined, hp: '' },
-    mode: 'onChange',
+    mode: 'onTouched',
     reValidateMode: 'onChange',
     criteriaMode: 'all',
   });
@@ -143,7 +143,10 @@ export default function Index() {
   const onNav = (id: keyof typeof SECTION_IDS) => {
     if (Platform.OS === 'web') {
       const el = document.getElementById(id);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (el) {
+        const top = (el as any).getBoundingClientRect().top + window.scrollY - 88;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
       return;
     }
     const y = sectionYs[id];
@@ -483,7 +486,7 @@ function FooterEmail({ onSubmit }: { onSubmit: (email: string) => void }) {
         placeholderTextColor="#666"
         keyboardType="email-address"
         autoCapitalize="none"
-        style={[styles.input, { flex: 1 }]} />
+        style={[styles.input, { flex: 1, minHeight: 44 }]} />
       <Pressable onPress={() => onSubmit(email)} style={[styles.primaryCta, { marginLeft: 8 }]}>
         <Text style={styles.primaryCtaText}>Join the Beta Waitlist</Text>
       </Pressable>
@@ -509,12 +512,12 @@ const styles = StyleSheet.create({
   },
   logo: { color: '#fff', fontSize: 20, fontWeight: '600' },
   nav: { flexDirection: 'row', gap: 16, flexWrap: 'wrap' },
-  navLink: { color: '#fff' },
+  navLink: { color: '#fff', paddingVertical: 8, paddingHorizontal: 4 },
   navLinkDisabled: { color: '#666' },
-  primaryCta: { backgroundColor: '#fff', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 8 },
-  primaryCtaLg: { backgroundColor: '#fff', paddingVertical: 14, paddingHorizontal: 18, borderRadius: 10 },
+  primaryCta: { backgroundColor: '#fff', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 8, minHeight: 44, justifyContent: 'center' },
+  primaryCtaLg: { backgroundColor: '#fff', paddingVertical: 16, paddingHorizontal: 18, borderRadius: 10, minHeight: 48, justifyContent: 'center' },
   primaryCtaText: { color: '#000', fontWeight: '700' },
-  secondaryCtaLg: { borderWidth: 1, borderColor: '#fff', paddingVertical: 14, paddingHorizontal: 18, borderRadius: 10 },
+  secondaryCtaLg: { borderWidth: 1, borderColor: '#fff', paddingVertical: 16, paddingHorizontal: 18, borderRadius: 10, minHeight: 48, justifyContent: 'center' },
   secondaryCtaText: { color: '#fff', fontWeight: '600' },
 
   section: { paddingHorizontal: 16, paddingVertical: 32, gap: 16 },
@@ -540,9 +543,9 @@ const styles = StyleSheet.create({
 
   form: { gap: 8 },
   label: { color: '#fff', marginTop: 8 },
-  input: { backgroundColor: '#111', color: '#fff', borderWidth: 1, borderColor: '#333', borderRadius: 8, paddingVertical: 12, paddingHorizontal: 12 },
+  input: { backgroundColor: '#111', color: '#fff', borderWidth: 1, borderColor: '#333', borderRadius: 8, paddingVertical: 12, paddingHorizontal: 12, minHeight: 44 },
   select: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  selectOption: { paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: '#333', borderRadius: 8 },
+  selectOption: { paddingVertical: 12, paddingHorizontal: 12, borderWidth: 1, borderColor: '#333', borderRadius: 8, minHeight: 44, justifyContent: 'center' },
   selectOptionActive: { backgroundColor: '#fff' },
   selectOptionText: { color: '#fff' },
   smallNote: { color: '#777', marginTop: 4 },
