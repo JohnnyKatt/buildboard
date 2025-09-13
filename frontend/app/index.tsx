@@ -257,7 +257,6 @@ export default function Index() {
   const onPressJoin = async () => {
     const ok = await trigger();
     if (!ok) {
-      // Auto-scroll to signup and focus first invalid
       onNav('Signup');
       if (errors?.name) {
         nameRef.current?.focus();
@@ -327,22 +326,24 @@ export default function Index() {
             >
               <View style={{ flexDirection: heroColumns ? 'row' : 'column', gap: 16, alignItems: 'flex-start' }}>
                 <View style={{ flex: heroColumns ? 11 : undefined }}>
-                  <Text style={[styles.heroTitle, { fontSize: heroTitleSize, lineHeight: heroTitleSize * 1.1 }]}>
+                  <Text style={[styles.heroTitle, { fontSize: heroTitleSize, lineHeight: heroTitleSize * 1.1, marginBottom: isMobile ? 12 : 8 }]}>
                     The social marketplace for automotive builds.
                   </Text>
-                  <Text style={styles.heroSubtitle}>
+                  <Text style={[styles.heroSubtitle, { marginBottom: isMobile ? 16 : 12 }]}>
                     Document your build. Tag every part. Connect with shops and brands.
                   </Text>
-                  <View style={[styles.row, { flexWrap: 'wrap', gap: 12, marginTop: 8, flexDirection: isMobile ? 'column' : 'row' }]}>
-                    <Pressable onPress={onPressJoin} style={[styles.primaryCtaLg, isMobile && { width: '100%' }]} accessibilityLabel="Join the Beta Waitlist">
-                      {submitting ? <ActivityIndicator color="#000" /> : <Text style={styles.primaryCtaText}>Join the Beta Waitlist</Text>}
+                  <View style={[styles.row, { flexWrap: 'wrap', gap: 12, marginTop: isMobile ? 8 : 8, flexDirection: isMobile ? 'column' : 'row' }]}>
+                    <Pressable onPress={() => onNav('Signup')} style={[styles.primaryCtaLg, isMobile && { width: '100%' }]} accessibilityLabel="Join the Beta Waitlist">
+                      <Text style={styles.primaryCtaText}>Join the Beta Waitlist</Text>
                     </Pressable>
                     <Pressable onPress={() => router.push('/refer')} style={[styles.secondaryCtaLg, isMobile && { width: '100%' }]} accessibilityLabel="Refer a Shop or Builder">
                       <Text style={styles.secondaryCtaText}>Refer a Shop or Builder</Text>
                     </Pressable>
                   </View>
+                  {/* Extra breathing room before media on mobile */}
+                  {isMobile ? <View style={{ height: 16 }} /> : null}
                 </View>
-                <View style={{ flex: heroColumns ? 9 : undefined, width: heroColumns ? '100%' : '100%' }}>
+                <View style={{ flex: heroColumns ? 9 : undefined, width: '100%' }}>
                   <View style={styles.heroMedia}>
                     <Text style={styles.mediaText}>Hero image / looping video placeholder</Text>
                   </View>
@@ -445,8 +446,8 @@ export default function Index() {
             {/* Signup */}
             <Animated.View entering={FadeIn.duration(600).delay(350)} nativeID={SECTION_IDS.Signup} onLayout={(e) => onLayoutSection(SECTION_IDS.Signup, e.nativeEvent.layout.y)} style={[styles.section, isMobile && styles.sectionMobile]}
             >
-              <Text style={[styles.h2, { fontSize: h2Size }]}>Be first to the line.</Text>
-              <Text style={styles.subhead}>Join the beta waitlist and help shape the future of car culture.</Text>
+              <Text style={[styles.h2, { fontSize: h2Size, marginBottom: isMobile ? 8 : 8 }]}>Be first to the line.</Text>
+              <Text style={[styles.subhead, { marginBottom: isMobile ? 12 : 12 }]}>Join the beta waitlist and help shape the future of car culture.</Text>
 
               <View style={styles.form}>
                 {/* Honeypot */}
@@ -522,7 +523,7 @@ export default function Index() {
                 />
                 {errors?.role ? <Text style={styles.error}>Role is required.</Text> : null}
 
-                <Pressable onPress={onPressJoin} style={[styles.primaryCta, { marginTop: 16, opacity: isValid && !submitting ? 1 : 0.5 }, isMobile && { width: '100%', minHeight: 48 }]} disabled={!isValid || submitting}>
+                <Pressable onPress={onPressJoin} style={[styles.primaryCta, { marginTop: 16, opacity: isValid && !submitting ? 1 : 0.5 }, isMobile && { width: '100%', alignSelf: 'stretch', minHeight: 48 }]} disabled={!isValid || submitting}>
                   {submitting ? <ActivityIndicator color="#000" /> : <Text style={styles.primaryCtaText}>Join the Beta Waitlist</Text>}
                 </Pressable>
                 <Text style={styles.privacy}>By joining, you agree to occasional updates. Unsubscribe anytime.</Text>
@@ -535,7 +536,7 @@ export default function Index() {
               <View style={[styles.footerRow, { flexDirection: isMobile ? 'column' : 'row' }]}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.label}>Stay in the loop</Text>
-                  <FooterEmail onSubmit={submitFooterEmail} />
+                  <FooterEmail onSubmit={submitFooterEmail} isMobile={isMobile} />
                 </View>
                 <View style={{ flex: 1, gap: 8 }}>
                   <Pressable onPress={() => {}} hitSlop={8}>
@@ -561,7 +562,7 @@ export default function Index() {
             <Text style={styles.menuTitle}>Menu</Text>
             {(['Problem','Solution','WhoFor','Community','Signup'] as (keyof typeof SECTION_IDS)[]).map((id) => (
               <Pressable key={id} onPress={() => { setMenuVisible(false); onNav(id); }} style={styles.menuItem} accessibilityLabel={`Go to ${id}`}>
-                <Text style={styles.menuItemText}>{id === 'WhoFor' ? 'Who It’s For' : id === 'Signup' ? 'Join Beta' : id === 'Problem' ? 'Why Buildboard' : id}</Text>
+                <Text style={styles.menuItemText}>{id === 'WhoFor' ? 'Who It’s For' : id === 'Signup' ? 'Join Beta' : id}</Text>
               </Pressable>
             ))}
           </View>
@@ -588,8 +589,26 @@ export default function Index() {
   );
 }
 
-function FooterEmail({ onSubmit }: { onSubmit: (email: string) => void }) {
+function FooterEmail({ onSubmit, isMobile }: { onSubmit: (email: string) => void; isMobile: boolean }) {
   const [email, setEmail] = useState('');
+  if (isMobile) {
+    return (
+      <View style={{ gap: 8, marginTop: 8 }}>
+        <TextInput
+          value={email}
+          onChangeText={setEmail}
+          placeholder="you@example.com"
+          placeholderTextColor="#666"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          style={[styles.input, { minHeight: 48 }]}
+        />
+        <Pressable onPress={() => onSubmit(email)} style={[styles.primaryCta, { width: '100%', alignSelf: 'stretch', minHeight: 48 }]} accessibilityLabel="Join the Beta Waitlist">
+          <Text style={styles.primaryCtaText}>Join the Beta Waitlist</Text>
+        </Pressable>
+      </View>
+    );
+  }
   return (
     <View style={styles.footerEmailRow}>
       <TextInput
@@ -647,11 +666,11 @@ const styles = StyleSheet.create({
   hamburger: { borderWidth: 1, borderColor: '#fff', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 12 },
   hamburgerText: { color: '#fff', fontSize: 18 },
 
-  section: { paddingHorizontal: 16, paddingVertical: 32, gap: 16 },
+  section: { paddingHorizontal: 16, paddingVertical: 40, gap: 16 },
   sectionMobile: { paddingVertical: 24 },
   row: { flexDirection: 'row', alignItems: 'center' },
   heroTitle: { color: '#fff', fontWeight: '800' },
-  heroSubtitle: { color: '#ccc', fontSize: 18, marginTop: 6 },
+  heroSubtitle: { color: '#ccc', fontSize: 18 },
   heroMedia: { height: 260, borderWidth: 1, borderColor: '#333', borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   mediaText: { color: '#666' },
 
