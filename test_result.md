@@ -101,6 +101,19 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+## frontend:
+##   - task: "Add analytics events"
+##     implemented: true
+##     working: NA
+##     file: "/app/frontend/src/utils/analytics.ts"
+##     stuck_count: 0
+##     priority: "medium"
+##     needs_retesting: true
+##     status_history:
+##         -working: true
+##         -agent: "main"
+##         -comment: "Added GA4 measurement protocol events for waitlist_submit, referral_submit, outbound_click_instagram"
+
 ## user_problem_statement: "Build a responsive single-page landing with waitlist + referrals and backend storage"
 ## backend:
 ##   - task: "Create Waitlist API"
